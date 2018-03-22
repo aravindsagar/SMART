@@ -1,2 +1,2 @@
 # SMART
-Smartphone Addiction Reduction Tool
+SMartphone Addiction Reduction Tool
