@@ -1,27 +1,49 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--Reports fragment contains a bar at the top to select report type and dates, and a frame below
+that which will show reports corresponding to the selections.-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.cs565project.smart.fragments.ReportsFragment">
 
+    <!--Bar for choosing report params-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:gravity="center_horizontal"
         android:padding="20dp">
-        <ImageView
+
+        <!--Spinner to switch between daily, weekly, trend views-->
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/report_view_spinner"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <android.widget.Space
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher_round"/>
-        <ImageView
+            android:layout_weight="1"/>
+
+        <!--Show selected date-->
+        <TextView
+            android:id="@+id/date_selected_text"
+            android:text="selected date"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher_round"/>
+            android:layout_height="wrap_content" />
+        <!--Date picker-->
         <ImageView
+            android:src="@drawable/ic_date_range_black_24dp"
+            android:id="@+id/date_picker_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher_round"/>
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
-</FrameLayout>
+    <!--This frame will contain the actual reports-->
+    <FrameLayout
+        android:id="@+id/reports_child_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>

@@ -1,16 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:layout_height="match_parent"
+<!--The outermost container in the main activity is a drawer view. It contains a NavigationView
+(the drawer) and the main contents.-->
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    xmlns:android="http://schemas.android.com/apk/res/android" >
-    <android.support.design.widget.TabLayout
-        android:id="@+id/tabs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
 
-    </android.support.design.widget.TabLayout>
-    <android.support.v4.view.ViewPager
-        android:id="@+id/main_viewpager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</LinearLayout>
+    <!--Main contents of the screen inside a CoordinatorLayout.-->
+    <android.support.design.widget.CoordinatorLayout android:layout_height="match_parent"
+        android:layout_width="match_parent">
+
+        <!--The AppBar will display the Toolbar and the tabs. A viewpager situated below will
+        switch between fragments according to the selected tab.-->
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/main_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_scrollFlags="enterAlways"/>
+            <android.support.design.widget.TabLayout
+                android:id="@+id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </android.support.design.widget.AppBarLayout>
+        <android.support.v4.view.ViewPager
+            android:id="@+id/main_viewpager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    </android.support.design.widget.CoordinatorLayout>
+    
+    <android.support.design.widget.NavigationView
+        android:layout_gravity="start" android:fitsSystemWindows="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:headerLayout="@layout/nav_header_main">
+        <LinearLayout
+            android:layout_marginTop="@dimen/nav_header_height"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="top">
+
+            <TextView
+                style="@style/NavDrawerItemStyle"
+                android:id="@+id/toggle_service"
+                android:drawableStart="@drawable/ic_pause"
+                android:text="@string/pause_service" />
+            <View
+                style="@style/SeparatorStyle"/>
+
+            <TextView
+                style="@style/NavDrawerItemStyle"
+                android:id="@+id/settings"
+                android:drawableStart="@drawable/ic_settings"
+                android:text="@string/settings" />
+            <View
+                style="@style/SeparatorStyle"/>
+
+            <TextView
+                style="@style/NavDrawerItemStyle"
+                android:id="@+id/logout"
+                android:drawableStart="@drawable/ic_logoff"
+                android:text="@string/logout"/>
+        </LinearLayout>
+    </android.support.design.widget.NavigationView>
+
+</android.support.v4.widget.DrawerLayout>
