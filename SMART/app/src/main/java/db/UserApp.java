@@ -2,6 +2,7 @@ package db;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
 import java.sql.Time;
@@ -23,4 +24,11 @@ public class UserApp {
     // Temp
     @ColumnInfo(name = "factor")
     private int appFactor;
+
+    @Ignore
+    public UserApp(int aid) {
+        id = aid;
+        accessTime = null;
+        appUsageCount = 0;
+    }
 }
