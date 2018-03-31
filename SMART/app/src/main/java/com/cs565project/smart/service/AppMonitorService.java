@@ -7,6 +7,9 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.cs565project.smart.util.AppInfo;
+import com.cs565project.smart.util.UsageStatsUtil;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -36,6 +39,7 @@ public class AppMonitorService extends Service {
             // Adding/removing overlay should happen in the main thread.
             if ("com.google.android.apps.messaging".equals(currentApp)) {
                 myHandler.post(myShowOverlay);
+
             } else if (!"android".equals(currentApp) && myOverlay.isVisible()) {
                 myHandler.post(myHideOverlay);
             }

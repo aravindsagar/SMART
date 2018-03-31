@@ -1,4 +1,4 @@
-package com.cs565project.smart.service;
+package com.cs565project.smart.util;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,18 +7,23 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by aravind on 11/11/14.
- * Class representing an installed app, and related functions.
+ * Class representing an installed app, and related functions. Do not initialize in UI thread; use
+ * a background thread.
  */
 public class AppInfo {
+    public static final String NO_CATEGORY = "NONE";
+
     private String packageName, appName;
     private Drawable appIcon;
+
 
     public AppInfo(String packageName, String appName, Drawable appIcon){
         this.packageName = packageName;
@@ -27,7 +32,7 @@ public class AppInfo {
     }
 
     public AppInfo(String packageName, Context context){
-        this.packageName = packageName;
+        this(packageName, null, null);
         setAppNameAndIconFromPackageName(packageName, context);
     }
 

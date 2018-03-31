@@ -1,4 +1,4 @@
-package com.cs565project.smart.service;
+package com.cs565project.smart.util;
 
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
