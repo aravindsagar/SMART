@@ -29,10 +29,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_setttings"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.cs565project.smart.MainActivity" />
+        </activity>
+
         <service
             android:name=".service.AppMonitorService"
             android:enabled="true"
             android:exported="false"/>
+
     </application>
 
 </manifest>

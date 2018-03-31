@@ -69,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(this, "Logging out", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 break;
             case R.id.toggle_service:
                 startService(new Intent(this, AppMonitorService.class)
