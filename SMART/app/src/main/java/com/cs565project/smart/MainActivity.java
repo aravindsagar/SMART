@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cs565project.smart.service.AppMonitorService;
+
 /**
  * The main entry point into the app. We have 2 tabs, managed by a TabLayout. Corresponding views
  * are displayed by a ViewPager, to whom appropriate fragments are supplied by
@@ -33,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
 
-
+        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
     }
 
     /**
@@ -71,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
                 break;
             case R.id.toggle_service:
+                startService(new Intent(this, AppMonitorService.class)
+                        .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
                 break;
         }
     }
