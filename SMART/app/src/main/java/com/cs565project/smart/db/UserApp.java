@@ -1,4 +1,4 @@
-package db;
+package com.cs565project.smart.db;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
