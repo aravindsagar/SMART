@@ -1,5 +1,6 @@
 package com.cs565project.smart;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -10,6 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.cs565project.smart.service.AppMonitorService;
 
 /**
  * The main entry point into the app. We have 2 tabs, managed by a TabLayout. Corresponding views
@@ -32,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
 
-
+        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
     }
 
     /**
@@ -68,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.settings:
                 break;
             case R.id.toggle_service:
+                startService(new Intent(this, AppMonitorService.class)
+                        .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
                 break;
         }
     }
