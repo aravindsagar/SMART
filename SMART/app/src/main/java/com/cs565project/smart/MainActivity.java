@@ -3,16 +3,25 @@ package com.cs565project.smart;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cs565project.smart.fragments.ReportsFragment;
+import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.service.AppMonitorService;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The main entry point into the app. We have 2 tabs, managed by a TabLayout. Corresponding views
@@ -76,6 +85,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startService(new Intent(this, AppMonitorService.class)
                         .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
                 break;
+        }
+    }
+
+    /**
+     * Adapter to populate tabs on the main activity.
+     * We have 2 tabs: one to show user's activity reports, and one where the user can set blocking
+     * parameters. See FRAGMENT_CLASSES to see the fragments that are returned.
+     * Created by aravind on 3/22/18.
+     */
+
+    public static class MainTabsAdapter extends FragmentPagerAdapter {
+
+        private static List<Pair<Class<? extends Fragment>, String>> FRAGMENT_CLASSES = Arrays.asList(
+                new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "ACTIVITY REPORTS"),
+                new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS")
+        );
+
+        MainTabsAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            try {
+                return FRAGMENT_CLASSES.get(position).first.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException("Error instantiating fragment", e);
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return FRAGMENT_CLASSES.get(position).second;
         }
     }
 }

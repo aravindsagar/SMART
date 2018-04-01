@@ -3,24 +3,24 @@ package com.cs565project.smart.db;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
+import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
-@Database(entities = {UserApp.class}, version = 1)
-public abstract class AppDatabase extends RoomDatabase{
+import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.DailyAppUsage;
 
-    // Work with singleton database object
-    private static AppDatabase INSTANCE;
-    public abstract UserAppDao userAppDao();
+@Database(entities = {DailyAppUsage.class, AppDetails.class}, version = 1)
+@TypeConverters({Converters.class})
+public abstract class AppDatabase extends RoomDatabase{
+    private static AppDatabase ourInstance;
 
     public static AppDatabase getAppDatabase(Context context) {
-        if(INSTANCE == null) {
-            INSTANCE = Room.databaseBuilder(context, AppDatabase.class,"appDB").build();
+        if (ourInstance == null) {
+            ourInstance = Room.databaseBuilder(context, AppDatabase.class, "appDB").build();
         }
-
-        return INSTANCE;
+        return ourInstance;
     }
 
-    public static void destroyInstance() {
-        INSTANCE = null;
-    }
+    public abstract AppDao userAppDao();
+
 }
