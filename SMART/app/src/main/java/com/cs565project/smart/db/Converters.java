@@ -8,6 +8,7 @@ import java.util.Date;
  * Converters required for Room database.
  */
 
+@SuppressWarnings("unused")
 public class Converters {
     @TypeConverter
     public static Date fromTimestamp(Long value) {

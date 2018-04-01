@@ -94,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * parameters. See FRAGMENT_CLASSES to see the fragments that are returned.
      * Created by aravind on 3/22/18.
      */
-
     public static class MainTabsAdapter extends FragmentPagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> FRAGMENT_CLASSES = Arrays.asList(
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public int getCount() {
-            return 2;
+            return FRAGMENT_CLASSES.size();
         }
 
         @Override

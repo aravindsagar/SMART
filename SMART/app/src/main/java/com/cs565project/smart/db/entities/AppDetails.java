@@ -2,19 +2,34 @@ package com.cs565project.smart.db.entities;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
+@SuppressWarnings("unused")
 @Entity
 public class AppDetails {
     @PrimaryKey
-    public String packageName;
+    @NonNull
+    private String packageName;
 
-    public String appName;
-    public String category;
+    private String appName;
+    private String category;
 
-    public AppDetails(String packageName, String appName, String category) {
+    public AppDetails(@NonNull String packageName, String appName, String category) {
         this.packageName = packageName;
         this.appName = appName;
         this.category = category;
     }
 
+    @NonNull
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
 }

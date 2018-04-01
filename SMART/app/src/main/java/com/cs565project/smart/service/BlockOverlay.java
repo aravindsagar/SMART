@@ -7,9 +7,9 @@ import android.view.WindowManager;
 
 import com.cs565project.smart.R;
 
-public class BlockOverlay extends OverlayBase {
+class BlockOverlay extends OverlayBase {
 
-    public BlockOverlay(Context context, WindowManager windowManager) {
+    BlockOverlay(Context context, WindowManager windowManager) {
         super(context, windowManager, R.layout.block_overlay);
     }
 
@@ -22,16 +22,13 @@ public class BlockOverlay extends OverlayBase {
     WindowManager.LayoutParams buildLayoutParams() {
         int overlayType = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O ?
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
+
+        return new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT, overlayType,
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT);
-
-//        params.x = 0;
-//        params.y = 0;
-        return params;
     }
 }
