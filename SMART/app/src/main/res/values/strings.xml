@@ -12,9 +12,14 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="test">This is a test</string>
     <string name="title_activity_smartsettings">SMART Settings</string>
-    <string name="picture_frequency">Picture Frequency: </string>
+    <string name="picture_frequency">Selfie Frequency: </string>
     <string name="once_a_day">Once a day</string>
     <string name="manual">Manual</string>
     <string name="twice_a_day">Twice a day</string>
     <string name="n_times_a_day">times a day</string>
+    <string name="app_blocking">App Blocking</string>
+    <string name="allow_app_block">Block apps after time limit</string>
+    <string name="allow_block_bypass">Allow block bypass</string>
+    <string name="emotion_recognition">Emotion recognition</string>
+    <string name="allow_take_picture">Capture selfies</string>
 </resources>

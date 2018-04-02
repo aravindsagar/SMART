@@ -46,7 +46,7 @@
     <style name="SettingsHeaderStyle" parent="SettingsSwitchStyle">
         <item name="android:layout_height">?android:listPreferredItemHeightSmall</item>
         <item name="android:layout_marginEnd">@dimen/settings_normal_margin</item>
-        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textColor">@color/colorAccentDark</item>
         <item name="android:gravity">center_vertical</item>
         <item name="android:layout_marginTop">14dp</item>
     </style>

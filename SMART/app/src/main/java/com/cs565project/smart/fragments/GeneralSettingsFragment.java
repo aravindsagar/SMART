@@ -2,7 +2,6 @@ package com.cs565project.smart.fragments;
 
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -12,20 +11,14 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Switch;
-import android.widget.TextView;
 
 import com.cs565project.smart.R;
-import com.cs565project.smart.util.PreferencesHelper;
 import com.cs565project.smart.util.PreferencesHelper.SeekbarPreference;
 import com.cs565project.smart.util.PreferencesHelper.SwitchPreference;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableMap;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -38,8 +31,8 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
      */
     public static final SwitchPreference PREF_ALLOW_APP_BLOCK =
             new SwitchPreference("allow_app_block", true, R.id.allow_block_switch);
-    public static final SwitchPreference PREF_HARD_BLOCK_ENABLED =
-            new SwitchPreference("hard_block_enabled", false, R.id.hard_block_switch);
+    public static final SwitchPreference PREF_ALLOW_BLOCK_BYPASS =
+            new SwitchPreference("allow_block_bypass", true, R.id.hard_block_switch);
     public static final SwitchPreference PREF_ALLOW_PICTURES =
             new SwitchPreference("allow_pictures", true, R.id.allow_picture_switch);
     public static final SeekbarPreference PREF_PICTURE_FREQ = new SeekbarPreference(
@@ -61,7 +54,7 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
     };
 
     private static final List<SwitchPreference> SWITCH_PREFERENCES = Arrays.asList(
-            PREF_HARD_BLOCK_ENABLED, PREF_ALLOW_PICTURES, PREF_ALLOW_APP_BLOCK
+            PREF_ALLOW_BLOCK_BYPASS, PREF_ALLOW_PICTURES, PREF_ALLOW_APP_BLOCK
     );
     private static final List<SeekbarPreference> SEEKBAR_PREFERENCES = Collections.singletonList(
             PREF_PICTURE_FREQ

@@ -8,25 +8,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView android:text="App Blocking"
+        <TextView android:text="@string/app_blocking"
             style="@style/SettingsHeaderStyle"/>
         <Switch
             android:id="@+id/allow_block_switch"
-            android:text="Allow this app to block"
+            android:text="@string/allow_app_block"
             style="@style/SettingsSwitchStyle" />
         <View style="@style/SeparatorStyle" />
 
         <Switch
             android:id="@+id/hard_block_switch"
-            android:text="Hard block (vs soft block)"
+            android:text="@string/allow_block_bypass"
             style="@style/SettingsSwitchStyle" />
 
-        <TextView android:text="Emotion recognition"
+        <TextView android:text="@string/emotion_recognition"
             style="@style/SettingsHeaderStyle"/>
 
         <Switch
             android:id="@+id/allow_picture_switch"
-            android:text="Allow this app to take picture"
+            android:text="@string/allow_take_picture"
             style="@style/SettingsSwitchStyle"/>
         <View style="@style/SeparatorStyle" />
 
