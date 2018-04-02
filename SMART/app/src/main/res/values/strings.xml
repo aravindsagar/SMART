@@ -6,10 +6,15 @@
     <string name="pause_service">Pause SMART</string>
     <string name="settings">Settings</string>
     <!--<string name="settings_file_key">settings_shared_preferences</string>-->
-    <string name="title_activity_setttings">SetttingsActivity</string>
+    <string name="title_activity_settings">SMART Settings</string>
     <string name="tab_text_1">General</string>
     <string name="tab_text_2">Recommendation</string>
-    <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="test">This is a test</string>
+    <string name="title_activity_smartsettings">SMART Settings</string>
+    <string name="picture_frequency">Picture Frequency: </string>
+    <string name="once_a_day">Once a day</string>
+    <string name="manual">Manual</string>
+    <string name="twice_a_day">Twice a day</string>
+    <string name="n_times_a_day">times a day</string>
 </resources>

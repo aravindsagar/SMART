@@ -1,4 +1,4 @@
-package com.cs565project.smart;
+package com.cs565project.smart.fragments;
 
 
 import android.os.Bundle;
@@ -8,14 +8,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.cs565project.smart.R;
+
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class RecommendationsFragment extends Fragment {
+public class RecommendationSettingsFragment extends Fragment {
 
 
-    public RecommendationsFragment() {
+    public RecommendationSettingsFragment() {
         // Required empty public constructor
     }
 
@@ -24,7 +26,7 @@ public class RecommendationsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_recommendations, container, false);
+        return inflater.inflate(R.layout.fragment_recommendation_settings, container, false);
     }
 
 }

@@ -1,0 +1,48 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.cs565project.smart.fragments.GeneralSettingsFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView android:text="App Blocking"
+            style="@style/SettingsHeaderStyle"/>
+        <Switch
+            android:id="@+id/allow_block_switch"
+            android:text="Allow this app to block"
+            style="@style/SettingsSwitchStyle" />
+        <View style="@style/SeparatorStyle" />
+
+        <Switch
+            android:id="@+id/hard_block_switch"
+            android:text="Hard block (vs soft block)"
+            style="@style/SettingsSwitchStyle" />
+
+        <TextView android:text="Emotion recognition"
+            style="@style/SettingsHeaderStyle"/>
+
+        <Switch
+            android:id="@+id/allow_picture_switch"
+            android:text="Allow this app to take picture"
+            style="@style/SettingsSwitchStyle"/>
+        <View style="@style/SeparatorStyle" />
+
+        <TextView
+            android:text="@string/picture_frequency"
+            android:id="@+id/picture_freq_text_view"
+            style="@style/SettingsSwitchStyle"
+            android:layout_marginTop="16dp"/>
+        <SeekBar
+            android:id="@+id/picture_frequency_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/settings_normal_margin"
+            android:layout_marginStart="@dimen/settings_normal_margin"
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:max="5" />
+
+    </LinearLayout>
+</ScrollView>

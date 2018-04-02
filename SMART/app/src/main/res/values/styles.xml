@@ -34,6 +34,23 @@
         <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
 
+    <style name="SettingsSwitchStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?android:attr/listPreferredItemHeight</item>
+        <item name="android:layout_marginStart">@dimen/settings_normal_margin</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="SettingsHeaderStyle" parent="SettingsSwitchStyle">
+        <item name="android:layout_height">?android:listPreferredItemHeightSmall</item>
+        <item name="android:layout_marginEnd">@dimen/settings_normal_margin</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_marginTop">14dp</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
