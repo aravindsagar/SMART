@@ -5,12 +5,9 @@
     <string name="logout">Logout</string>
     <string name="pause_service">Pause SMART</string>
     <string name="settings">Settings</string>
-    <!--<string name="settings_file_key">settings_shared_preferences</string>-->
     <string name="title_activity_settings">SMART Settings</string>
     <string name="tab_text_1">General</string>
     <string name="tab_text_2">Recommendation</string>
-    <string name="section_format">Hello World from section: %1$d</string>
-    <string name="test">This is a test</string>
     <string name="title_activity_smartsettings">SMART Settings</string>
     <string name="picture_frequency">Selfie Frequency: </string>
     <string name="once_a_day">Once a day</string>
@@ -22,4 +19,6 @@
     <string name="allow_block_bypass">Allow block bypass</string>
     <string name="emotion_recognition">Emotion recognition</string>
     <string name="allow_take_picture">Capture selfies</string>
+    <string name="channel_name">App usage</string>
+    <string name="channel_description">Displays a summary of your app usage today</string>
 </resources>
