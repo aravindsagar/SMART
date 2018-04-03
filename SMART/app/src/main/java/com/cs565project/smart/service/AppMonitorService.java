@@ -64,6 +64,7 @@ public class AppMonitorService extends Service {
 
             } else if (!"android".equals(currentApp) && myOverlay.isVisible()) {
                 myHandler.post(myHideOverlay);
+
             }
 
             if (cycleCount == DATA_UPDATE_DELAY/CYCLE_DELAY) {
