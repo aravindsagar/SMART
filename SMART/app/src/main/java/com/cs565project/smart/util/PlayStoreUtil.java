@@ -1,7 +1,5 @@
 package com.cs565project.smart.util;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -76,8 +74,6 @@ public class PlayStoreUtil {
             breakNext = (markerIdx != -1);
         }
 
-        Log.d("playStore", targetString);
-        Log.d("markerIdx", markerIdx + "");
         if (markerIdx == -1) {
             return NO_CATEGORY;
         }

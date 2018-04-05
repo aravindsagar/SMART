@@ -21,4 +21,6 @@
     <string name="allow_take_picture">Capture selfies</string>
     <string name="channel_name">App usage</string>
     <string name="channel_description">Displays a summary of your app usage today</string>
+    <string name="time_in_restricted_apps">%d minutes in restricted apps</string>
+    <string name="limit_exceeded">Usage limit exceeded in %d apps</string>
 </resources>

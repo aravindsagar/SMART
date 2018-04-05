@@ -5,18 +5,24 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.usage.UsageStats;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.view.WindowManager;
 
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
+import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.util.DbUtils;
 import com.cs565project.smart.util.UsageStatsUtil;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -70,12 +76,27 @@ public class AppMonitorService extends Service {
             if (cycleCount == DATA_UPDATE_DELAY/CYCLE_DELAY) {
                 cycleCount = 0;
                 Log.d("SMART", "Updating app usage data");
-                // TODO collect app usage time and update db.
-                // TODO update notification title and text.
-                notificationText = "1:20 hours in restricted apps";
-                notificationTitle = "Good job!";
+
+                List<Pair<AppDetails, UsageStats>> restrictedAppsStatus =
+                        DbUtils.getRestrictedAppsStatus(AppMonitorService.this);
+                long timeInRestrictedApps = 0;
+                int exceededApps = 0;
+                for(Pair<AppDetails, UsageStats> appStatus : restrictedAppsStatus) {
+                    timeInRestrictedApps += appStatus.second.getTotalTimeInForeground();
+                    if (appStatus.second.getTotalTimeInForeground() >= appStatus.first.getThresholdTime()) {
+                        exceededApps += 1;
+                    }
+                }
+
+                // Update notification title and text.
+                notificationText = String.format(Locale.getDefault(),
+                        getString(R.string.time_in_restricted_apps), timeInRestrictedApps);
+                notificationTitle = (exceededApps <= 0) ?
+                        "Good job!" :
+                        String.format(Locale.getDefault(), getString(R.string.limit_exceeded), exceededApps);
                 updateNotification = true;
             }
+
             // Schedule the app check to run again after a second.
             if (isRunning) {
                 myHandler.postDelayed(myBgJobStarter, CYCLE_DELAY);

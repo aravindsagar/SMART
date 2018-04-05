@@ -8,14 +8,15 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TimeZone;
 import java.util.TreeMap;
+
+import static android.text.format.DateUtils.WEEK_IN_MILLIS;
 
 public class UsageStatsUtil {
 
@@ -41,30 +42,36 @@ public class UsageStatsUtil {
         return null;
     }
 
-    public SortedMap<Long, UsageStats> getMostUsedAppsLastWeek() {
+    public List<UsageStats> getMostUsedAppsLastWeek() {
         long time = System.currentTimeMillis();
-        return getMostUsedApps(time - 7*24*60*60*3600, time);
+        return getMostUsedApps(time - WEEK_IN_MILLIS, time);
     }
 
-    public SortedMap<Long, UsageStats> getMostUsedAppsToday() {
+    public List<UsageStats> getMostUsedAppsToday() {
+
+        return getMostUsedApps(getStartOfTodayMillis(), System.currentTimeMillis());
+    }
+
+    private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
+        List<UsageStats> appList = mUsageStatsManager
+                .queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+
+        if (appList != null) {
+            Collections.sort(appList, (a,b) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
+        } else {
+            appList = new ArrayList<>();
+        }
+
+        return appList;
+    }
+
+    public static long getStartOfTodayMillis() {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        return getMostUsedApps(cal.getTimeInMillis(), System.currentTimeMillis());
-    }
-
-    private SortedMap<Long, UsageStats> getMostUsedApps(long startTime, long endTime) {
-        List<UsageStats> appList = mUsageStatsManager
-                .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  startTime, endTime);
-        SortedMap<Long, UsageStats> sortedMap = new TreeMap<>();
-        if (appList != null) {
-            for (UsageStats s : appList) {
-                sortedMap.put(s.getTotalTimeInForeground(), s);
-            }
-        }
-        return sortedMap;
+        return cal.getTimeInMillis();
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

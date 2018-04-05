@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b4d38fd509472f42ded10f502c819a82",
+    "identityHash": "050be5471b78b415db9b2b7ad64e7dcd",
     "entities": [
       {
         "tableName": "DailyAppUsage",
@@ -57,7 +57,7 @@
       },
       {
         "tableName": "AppDetails",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT, `category` TEXT, PRIMARY KEY(`packageName`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT, `category` TEXT, `thresholdTime` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -76,6 +76,12 @@
             "columnName": "category",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "thresholdTime",
+            "columnName": "thresholdTime",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -90,7 +96,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b4d38fd509472f42ded10f502c819a82\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"050be5471b78b415db9b2b7ad64e7dcd\")"
     ]
   }
 }
