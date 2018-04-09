@@ -31,4 +31,5 @@
     <string name="duration_hour">%d:%d hr</string>
     <string name="total">total</string>
     <string name="n_more_apps">, and %d more apps</string>
+    <string name="duration_in_category">in %s apps</string>
 </resources>

@@ -166,8 +166,11 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
             myPieChart.setData(myPieData);
             myPieChart.invalidate();
+            String centerTextEnding = (myViewState == ViewState.TOTAL) ?
+                    getString(R.string.total) :
+                    String.format(getString(R.string.duration_in_category), myCurrentCategory);
             String centerText = UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()) +
-                    " " + getString(R.string.total);
+                    " " + centerTextEnding;
             myPieChart.setCenterText(centerText);
 
             // Update the chart legend.
