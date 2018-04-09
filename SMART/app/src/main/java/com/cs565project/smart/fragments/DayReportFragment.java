@@ -165,13 +165,13 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             // Update the pie chart.
             myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
             myPieChart.setData(myPieData);
-            myPieChart.invalidate();
             String centerTextEnding = (myViewState == ViewState.TOTAL) ?
                     getString(R.string.total) :
                     String.format(getString(R.string.duration_in_category), myCurrentCategory);
             String centerText = UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()) +
                     " " + centerTextEnding;
-            myPieChart.setCenterText(centerText);
+            myPieChart.setCenterText(Html.fromHtml(centerText));
+            myPieChart.invalidate();
 
             // Update the chart legend.
             PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
@@ -246,7 +246,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         myPieChart.setUsePercentValues(true);
         myPieChart.setEntryLabelColor(Color.BLACK);
         myPieChart.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
-        myPieChart.setCenterTextSize(34);
+        myPieChart.setCenterTextSize(26);
         myPieChart.setHoleRadius(PIE_HOLE_RADIUS);
         myPieChart.setTransparentCircleRadius(PIE_HOLE_RADIUS+5);
         myPieChart.setDrawCenterText(true);

@@ -1,9 +1,10 @@
 <!--Reports fragment contains a bar at the top to select report type and dates, and a frame below
 that which will show reports corresponding to the selections.-->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<LinearLayout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context="com.cs565project.smart.fragments.ReportsFragment">
 
@@ -41,7 +42,6 @@ that which will show reports corresponding to the selections.-->
 
     <!--This frame will contain the actual reports-->
     <FrameLayout
-        android:layout_marginTop="12dp"
         android:id="@+id/reports_child_frame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
