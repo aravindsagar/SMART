@@ -17,9 +17,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,6 +33,7 @@ import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.UsageStatsUtil;
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
@@ -54,11 +57,14 @@ import java.util.concurrent.Executors;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayReportFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnChartValueSelectedListener {
+public class DayReportFragment extends Fragment implements OnChartValueSelectedListener, AdapterView.OnItemClickListener, View.OnKeyListener {
 
-    public static final String EXTRA_DATE = "extra_date";
+    private static final String EXTRA_DATE = "extra_date";
+    private static final String EXTRA_CATEGORY = "category";
 
     private static final float PIE_HOLE_RADIUS = 80f;
+
+    enum ViewState {TOTAL, PER_CATEGORY}
 
     // References to views.
     private PieChart myPieChart;
@@ -68,8 +74,10 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
     // Our state.
     private PieData myPieData;
     private long myTotalUsageTime;
-    private Map<String, List<String>> myCategoryApps;
+    private Map<String, List<String>> myAdditionalLegendInfo;
     private Date myDate;
+    private ViewState myViewState;
+    private String myCurrentCategory;
 
     // For background execution.
     private Executor myExecutor = Executors.newSingleThreadExecutor();
@@ -82,10 +90,10 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
             List<PieEntry> entries = new ArrayList<>();
             AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(new Date(UsageStatsUtil.getStartOfDayMillis(myDate)));
-            Map<String, Long> categoryUsages = new HashMap<>();
+            Map<String, Long> usageMap = new HashMap<>();
 
             // Initialize state with defaults.
-            myCategoryApps = new HashMap<>();
+            myAdditionalLegendInfo = new HashMap<>();
             myTotalUsageTime = 0;
 
             for (DailyAppUsage appUsage : appUsages) {
@@ -94,21 +102,30 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
 
                 if (AppInfo.NO_CATEGORY.equals(category)) { continue; }
 
-                myTotalUsageTime += appUsage.getDailyUseTime();
-                if (categoryUsages.containsKey(category)) {
-                    categoryUsages.put(category, categoryUsages.get(category) + appUsage.getDailyUseTime());
-                    myCategoryApps.get(category).add(appDetails.getAppName());
-                } else {
-                    categoryUsages.put(category, appUsage.getDailyUseTime());
-                    myCategoryApps.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
+                // We have to collect different data depending on our state.
+                if (myViewState == ViewState.TOTAL) {
+                    myTotalUsageTime += appUsage.getDailyUseTime();
+                    if (usageMap.containsKey(category)) {
+                        usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
+                        myAdditionalLegendInfo.get(category).add(appDetails.getAppName());
+                    } else {
+                        usageMap.put(category, appUsage.getDailyUseTime());
+                        myAdditionalLegendInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
+                    }
+                } else if (myViewState == ViewState.PER_CATEGORY) {
+                    if (!myCurrentCategory.equals(category)) { continue; }
+
+                    myTotalUsageTime += appUsage.getDailyUseTime();
+                    usageMap.put(appDetails.getAppName(), appUsage.getDailyUseTime());
+                    myAdditionalLegendInfo.put(appDetails.getAppName(), Collections.singletonList(appDetails.getPackageName()));
                 }
             }
 
-            List<String> categories = new ArrayList<>(categoryUsages.keySet());
-            Collections.sort(categories, (b, a) -> Long.compare(categoryUsages.get(a), categoryUsages.get(b)));
+            List<String> categories = new ArrayList<>(usageMap.keySet());
+            Collections.sort(categories, (b, a) -> Long.compare(usageMap.get(a), usageMap.get(b)));
             for (String category : categories) {
-                PieEntry entry = new PieEntry(categoryUsages.get(category), category);
-                Log.d(String.valueOf(categoryUsages.get(category)), category);
+                PieEntry entry = new PieEntry(usageMap.get(category), category);
+                Log.d(String.valueOf(usageMap.get(category)), category);
                 entries.add(entry);
             }
 
@@ -146,6 +163,7 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
                 return;
             }
             // Update the pie chart.
+            myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
             myPieChart.setData(myPieData);
             myPieChart.invalidate();
             String centerText = UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()) +
@@ -155,10 +173,11 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
             // Update the chart legend.
             PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new PieLegendAdapter(myPieData, myCategoryApps, myTotalUsageTime, getContext());
+                adapter = new PieLegendAdapter(myPieData, myAdditionalLegendInfo, myTotalUsageTime,
+                        getContext(), DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
-                adapter.setData(myPieData, myCategoryApps, myTotalUsageTime);
+                adapter.setData(myPieData, myAdditionalLegendInfo, myTotalUsageTime);
             }
             myLegend.getAdapter().notifyDataSetChanged();
 
@@ -167,9 +186,10 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
         }
     };
 
-    public static DayReportFragment getInstance(long dateInMillis) {
+    public static DayReportFragment getInstance(long dateInMillis, String category) {
         Bundle args = new Bundle();
         args.putLong(EXTRA_DATE, dateInMillis);
+        args.putString(EXTRA_CATEGORY, category);
         DayReportFragment fragment = new DayReportFragment();
         fragment.setArguments(args);
         return fragment;
@@ -177,6 +197,10 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
 
     public DayReportFragment() {
         // Required empty public constructor
+    }
+
+    public String getCurrentCategory() {
+        return myCurrentCategory;
     }
 
     @Override
@@ -190,8 +214,29 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
         myPieChart = rootView.findViewById(R.id.pie_chart);
         myLegend = rootView.findViewById(R.id.pie_categories_list);
 
+        // Populate some state.
+        if (getArguments() != null) {
+            myCurrentCategory = getArguments().getString(EXTRA_CATEGORY);
+        }
+        if (myCurrentCategory == null || myCurrentCategory.isEmpty()) {
+            myViewState = ViewState.TOTAL;
+            myCurrentCategory = "";
+        } else {
+            myViewState = ViewState.PER_CATEGORY;
+        }
+
         // Init our views.
-        myRefreshLayout.setOnRefreshListener(this);
+        myRefreshLayout.setOnRefreshListener(this::setPieData);
+        setupPieAndLegendView();
+        setPieData();
+
+        rootView.setFocusableInTouchMode(true);
+        rootView.requestFocus();
+        rootView.setOnKeyListener(this);
+        return rootView;
+    }
+
+    private void setupPieAndLegendView() {
         myPieChart.getDescription().setEnabled(false);
         myPieChart.getLegend().setEnabled(false);
         myPieChart.setOnChartValueSelectedListener(this);
@@ -210,8 +255,6 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
         myLegend.addItemDecoration(dividerItemDecoration);
         assert getArguments() != null;
         myDate = new Date(getArguments().getLong(EXTRA_DATE, System.currentTimeMillis()));
-        setPieData();
-        return rootView;
     }
 
     private void setPieData() {
@@ -220,13 +263,24 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
     }
 
     @Override
-    public void onRefresh() {
-        setPieData();
+    public void onValueSelected(Entry e, Highlight h) {
+        switchToPerCategoryView(((PieEntry) e).getLabel());
     }
 
     @Override
-    public void onValueSelected(Entry e, Highlight h) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        switchToPerCategoryView(myPieData.getDataSet().getEntryForIndex(position).getLabel());
+    }
 
+    private void switchToPerCategoryView(String category) {
+        // If we are already in details view, nothing to do.
+        if (myViewState == ViewState.PER_CATEGORY) {
+            return;
+        }
+
+        myViewState = ViewState.PER_CATEGORY;
+        myCurrentCategory = category;
+        setPieData();
     }
 
     @Override
@@ -234,24 +288,48 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
 
     }
 
+    /**
+     * Handle back button press. Return whether the back press was consumed by the fragment.
+     */
+    public boolean goBack() {
+        if (myViewState == ViewState.TOTAL) {
+            return false;
+        }
+
+        // We are in details view. Go back to total view and consume the button press so that
+        // our parent does not go back.
+        myViewState = ViewState.TOTAL;
+        myCurrentCategory = "";
+        setPieData();
+        return true;
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && goBack();
+    }
+
     private static class PieLegendAdapter extends RecyclerView.Adapter<PieLegendAdapter.ViewHolder> {
 
         private PieData myPieData;
-        private Map<String, List<String>> myCategoryApps;
-        private long total;
+        private Map<String, List<String>> myAdditionalLegendInfo;
+        private long myTotal;
         private Context myContext;
+        private AdapterView.OnItemClickListener myListener;
 
-        PieLegendAdapter(PieData pieData, Map<String, List<String>> categoryApps, long total, Context context) {
+        PieLegendAdapter(PieData pieData, Map<String, List<String>> categoryApps, long total,
+                         Context context, AdapterView.OnItemClickListener listener) {
             this.myPieData = pieData;
-            this.myCategoryApps = categoryApps;
-            this.total = total;
+            this.myAdditionalLegendInfo = categoryApps;
+            this.myTotal = total;
             this.myContext = context;
+            this.myListener = listener;
         }
 
         public void setData(PieData pieData, Map<String, List<String>> categoryApps, long total) {
             this.myPieData = pieData;
-            this.myCategoryApps = categoryApps;
-            this.total = total;
+            this.myAdditionalLegendInfo = categoryApps;
+            this.myTotal = total;
         }
 
         @NonNull
@@ -267,7 +345,7 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
             PieEntry entry = myPieData.getDataSet().getEntryForIndex(position);
 
             // Setup the background progress bar.
-            holder.progressBar.setProgress((int) (entry.getValue() * 100 / total));
+            holder.progressBar.setProgress((int) (entry.getValue() * 100 / myTotal));
             int color = myPieData.getColors()[position];
             int lighterColor = Color.argb(50, Color.red(color), Color.green(color), Color.blue(color));
             holder.progressDrawable.setColorFilter(lighterColor, PorterDuff.Mode.MULTIPLY);
@@ -277,10 +355,12 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
 
             // Set title and subtitle.
             holder.title.setText(Html.fromHtml(entry.getLabel()));
-            holder.subtitle.setText(buildSubtitle(myCategoryApps.get(entry.getLabel())));
+            holder.subtitle.setText(buildSubtitle(myAdditionalLegendInfo.get(entry.getLabel())));
 
             // Set duration.
             holder.duration.setText(UsageStatsUtil.formatDuration((long) entry.getValue(), myContext));
+
+            holder.root.setOnClickListener(v -> myListener.onItemClick(null, v, position, position));
         }
 
         @Override
@@ -305,6 +385,7 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
 
         static class ViewHolder extends RecyclerView.ViewHolder {
 
+            View root;
             ProgressBar progressBar;
             Drawable progressDrawable;
             ImageView legendColorBox;
@@ -313,6 +394,7 @@ public class DayReportFragment extends Fragment implements SwipeRefreshLayout.On
             ViewHolder(View itemView) {
                 super(itemView);
 
+                root = itemView;
                 progressBar = itemView.findViewById(R.id.legend_progress_bar);
                 progressDrawable = ((LayerDrawable) progressBar.getProgressDrawable()).findDrawableByLayerId(android.R.id.progress);
                 legendColorBox = itemView.findViewById(R.id.legend_color_box);

@@ -6,6 +6,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -29,6 +30,8 @@ import java.util.List;
  * {@link MainTabsAdapter}.
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private DrawerLayout myDrawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // First we set our toolbar and add toggle button for nav drawer.
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout myDrawer = findViewById(R.id.drawer_layout);
+        myDrawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, myDrawer, toolbar, R.string.app_name, R.string.app_name);
         myDrawer.addDrawerListener(toggle);
@@ -76,14 +79,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.logout:
                 Toast.makeText(this, "Logging out", Toast.LENGTH_SHORT).show();
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
             case R.id.settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
             case R.id.toggle_service:
                 startService(new Intent(this, AppMonitorService.class)
                         .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
         }
     }
@@ -122,6 +128,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public CharSequence getPageTitle(int position) {
             return FRAGMENT_CLASSES.get(position).second;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (myDrawer.isDrawerOpen(GravityCompat.START)) {
+            myDrawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }

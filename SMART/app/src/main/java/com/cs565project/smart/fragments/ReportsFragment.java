@@ -34,6 +34,9 @@ import java.util.List;
 public class ReportsFragment extends Fragment implements View.OnClickListener,
         DatePickerFragment.OnDateSelectedListener, AdapterView.OnItemSelectedListener {
 
+    private static final String FRAGMENT_DAY_TAG = "date_picker";
+    private static final String KEY_CATEGORY = "category";
+
     /**
      * A class for representing various report types.
      */
@@ -88,6 +91,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     private Date mySingleSelectionDate;
     private Date myRangeSelectionStartDate;
     private Date myRangeSelectionEndDate;
+    private String myDayReportCategory;
 
     public ReportsFragment() {
         // Required empty public constructor
@@ -124,6 +128,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             long startDate = savedInstanceState.getLong(KEY_START_DATE, 0);
             long endDate = savedInstanceState.getLong(KEY_END_DATE, 0);
             spinnerPos = savedInstanceState.getInt(KEY_SPINNER_POSITION, -1);
+            String category = savedInstanceState.getString(KEY_CATEGORY);
 
             if (startDate > 0) {
                 myRangeSelectionStartDate = new Date(startDate);
@@ -133,6 +138,9 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             }
             if (singleDate > 0) {
                 mySingleSelectionDate = new Date(singleDate);
+            }
+            if (category != null) {
+                myDayReportCategory = category;
             }
         }
         if (spinnerPos > -1) {
@@ -168,7 +176,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
                                 myStartDate.getTime(),
                                 UsageStatsUtil.getTomorrowMillis()
                         ).setListener(ReportsFragment.this);
-                datePickerFragment.show(getChildFragmentManager(), "date_picker");
+                datePickerFragment.show(getChildFragmentManager(), FRAGMENT_DAY_TAG);
         }
     }
 
@@ -189,9 +197,14 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         }
         myDatesText.setText(dateStr);
 
+        // If myDayReportCategory is not empty, it means that we restored from saved state, and has
+        // to get our child fragment into the same state. So we pass in the category. But we don't
+        // want to enforce this category when user selects a different date, so unset the category.
+        String category = myDayReportCategory;
+        myDayReportCategory = "";
         getChildFragmentManager().beginTransaction().replace(
                 R.id.reports_child_frame,
-                DayReportFragment.getInstance(selectedDates.get(0).getTime())
+                DayReportFragment.getInstance(selectedDates.get(0).getTime(), category)
         ).commit();
     }
 
@@ -206,7 +219,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     public void onNothingSelected(AdapterView<?> parent) {}
 
     private void handleSpinnerItemChange(int newPosition) {
-        myCurrentSpinnerItem = newPosition;git
+        myCurrentSpinnerItem = newPosition;
         ReportType curType = REPORT_TYPES.get(newPosition);
 
         List<Date> selectedDates;
@@ -236,5 +249,10 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             outState.putLong(KEY_END_DATE, myRangeSelectionEndDate.getTime());
         }
         outState.putInt(KEY_SPINNER_POSITION, myCurrentSpinnerItem);
+
+        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.reports_child_frame);
+        if (fragment instanceof DayReportFragment) {
+            outState.putString(KEY_CATEGORY, ((DayReportFragment) fragment).getCurrentCategory());
+        }
     }
 }
