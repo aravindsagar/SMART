@@ -18,6 +18,12 @@ public interface AppDao {
     @Query("SELECT * FROM DailyAppUsage WHERE packageName = (:packageName) AND date = (:date) LIMIT 1")
     DailyAppUsage getAppUsage(String packageName, Date date);
 
+    @Query("SELECT * FROM DailyAppUsage WHERE date = (:date)")
+    List<DailyAppUsage> getAppUsage(Date date);
+
+    @Query("SELECT MIN(date) FROM DailyAppUsage")
+    Date getUsageDataStartDate();
+
     @Query("SELECT * FROM AppDetails")
     List<AppDetails> getAppDetails();
 
@@ -26,6 +32,9 @@ public interface AppDao {
 
     @Query("SELECT * FROM AppDetails WHERE packageName IN (:packageNames)")
     List<AppDetails> getAppDetails(List<String> packageNames);
+
+    @Query("SELECT * FROM AppDetails WHERE packageName = (:packageName) LIMIT 1")
+    AppDetails getAppDetails(String packageName);
 
     @Query("SELECT * FROM AppDetails WHERE thresholdTime > -1")
     List<AppDetails> getRestrictedAppDetails();

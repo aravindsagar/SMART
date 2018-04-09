@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static class MainTabsAdapter extends FragmentPagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> FRAGMENT_CLASSES = Arrays.asList(
-                new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "ACTIVITY REPORTS"),
+                new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "YOUR ACTIVITY"),
                 new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS")
         );
 

@@ -10,10 +10,11 @@ that which will show reports corresponding to the selections.-->
     <!--Bar for choosing report params-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_horizontal"
-        android:padding="20dp">
+        android:background="#10000000"
+        android:padding="14dp">
 
         <!--Spinner to switch between daily, weekly, trend views-->
         <android.support.v7.widget.AppCompatSpinner
@@ -21,15 +22,12 @@ that which will show reports corresponding to the selections.-->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <android.widget.Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
-
         <!--Show selected date-->
         <TextView
             android:id="@+id/date_selected_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="end|center_vertical"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"/>
         <!--Date picker-->
@@ -43,8 +41,11 @@ that which will show reports corresponding to the selections.-->
 
     <!--This frame will contain the actual reports-->
     <FrameLayout
+        android:layout_marginTop="12dp"
         android:id="@+id/reports_child_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
 
 </LinearLayout>

@@ -51,7 +51,7 @@ public class DbUtils {
         }
     }
 
-    public static List<Pair<AppDetails, UsageStats>> getRestrictedAppsStatus(Context context) {
+    public static List<Pair<AppDetails, UsageStats>> updateAndGetRestrictedAppsStatus(Context context) {
         AppDao dao = AppDatabase.getAppDatabase(context).appDao();
 
         // Construct a restricted apps map.
@@ -73,7 +73,7 @@ public class DbUtils {
             if (!dbApps.contains(usageStats.getPackageName())) continue;
             toInsert.add(new DailyAppUsage(
                     usageStats.getPackageName(),
-                    new Date(UsageStatsUtil.getStartOfTodayMillis()),
+                    new Date(UsageStatsUtil.getStartOfDayMillis(new Date())),
                     usageStats.getTotalTimeInForeground(),
                     0
             ));

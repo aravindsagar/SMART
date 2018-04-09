@@ -8,11 +8,16 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.text.format.DateUtils;
+
+import com.cs565project.smart.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -48,8 +53,8 @@ public class UsageStatsUtil {
     }
 
     public List<UsageStats> getMostUsedAppsToday() {
-
-        return getMostUsedApps(getStartOfTodayMillis(), System.currentTimeMillis());
+        Date today = new Date();
+        return getMostUsedApps(getStartOfDayMillis(today), today.getTime());
     }
 
     private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
@@ -65,8 +70,19 @@ public class UsageStatsUtil {
         return appList;
     }
 
-    public static long getStartOfTodayMillis() {
+    public static long getStartOfDayMillis(Date date) {
         Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    public static long getTomorrowMillis() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 1);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -87,6 +103,17 @@ public class UsageStatsUtil {
 
         } catch (PackageManager.NameNotFoundException e) {
             return false;
+        }
+    }
+
+    public static String formatDuration(long timeInMillis, Context context) {
+        long totalTimeMins = timeInMillis / DateUtils.MINUTE_IN_MILLIS;
+        if (totalTimeMins < 1) {
+            return  context.getString(R.string.zero_min);
+        } else if (totalTimeMins < 60) {
+            return String.format(Locale.getDefault(), context.getString(R.string.duration_min), totalTimeMins);
+        } else {
+            return String.format(Locale.getDefault(), context.getString(R.string.duration_hour), totalTimeMins / 60, totalTimeMins % 60);
         }
     }
 }

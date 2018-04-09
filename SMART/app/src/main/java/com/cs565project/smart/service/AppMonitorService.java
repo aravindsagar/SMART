@@ -78,7 +78,7 @@ public class AppMonitorService extends Service {
                 Log.d("SMART", "Updating app usage data");
 
                 List<Pair<AppDetails, UsageStats>> restrictedAppsStatus =
-                        DbUtils.getRestrictedAppsStatus(AppMonitorService.this);
+                        DbUtils.updateAndGetRestrictedAppsStatus(AppMonitorService.this);
                 long timeInRestrictedApps = 0;
                 int exceededApps = 0;
                 for(Pair<AppDetails, UsageStats> appStatus : restrictedAppsStatus) {

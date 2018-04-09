@@ -15,9 +15,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.cs565project.smart.R;
+import com.cs565project.smart.db.AppDao;
+import com.cs565project.smart.db.AppDatabase;
+import com.cs565project.smart.util.UsageStatsUtil;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -66,16 +68,26 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         Date startDate = calendar.getTime();
         Date endDate = new Date();
         REPORT_TYPES = Arrays.asList(
-                new ReportType("Daily", false, null, endDate, null),
+                new ReportType("Daily", false, DayReportFragment.class, endDate, null),
                 new ReportType("Over time", true, null, startDate, endDate)
         );
     }
 
     @SuppressLint("SimpleDateFormat")
-    private static DateFormat ourDateFormat = new SimpleDateFormat("MMM dd");
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM dd");
+
+    // Keys for saving data in state bundle.
+    private static final String KEY_SPINNER_POSITION = "spinner_position";
+    private static final String KEY_START_DATE = "start_date";
+    private static final String KEY_END_DATE = "end_date";
+    private static final String KEY_SINGLE_DATE = "single_date";
 
     private TextView myDatesText;
     private int myCurrentSpinnerItem = -1;
+    private Date myStartDate;
+    private Date mySingleSelectionDate;
+    private Date myRangeSelectionStartDate;
+    private Date myRangeSelectionEndDate;
 
     public ReportsFragment() {
         // Required empty public constructor
@@ -93,6 +105,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_reports, container, false);
         ImageView pickDateButton = root.findViewById(R.id.date_picker_button);
+        pickDateButton.setEnabled(false);
         pickDateButton.setOnClickListener(this);
 
         Spinner reportSpinner = root.findViewById(R.id.report_view_spinner);
@@ -103,9 +116,45 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         reportSpinner.setOnItemSelectedListener(this);
 
         myDatesText = root.findViewById(R.id.date_selected_text);
-        // Select today by default.
-        // TODO: save state and restore from bundle.
-        handleSpinnerItemChange(0);
+
+        // Restore from saved instance state if necessary.
+        int spinnerPos = 0;
+        if (savedInstanceState != null) {
+            long singleDate = savedInstanceState.getLong(KEY_SINGLE_DATE, 0);
+            long startDate = savedInstanceState.getLong(KEY_START_DATE, 0);
+            long endDate = savedInstanceState.getLong(KEY_END_DATE, 0);
+            spinnerPos = savedInstanceState.getInt(KEY_SPINNER_POSITION, -1);
+
+            if (startDate > 0) {
+                myRangeSelectionStartDate = new Date(startDate);
+            }
+            if (endDate > 0) {
+                myRangeSelectionEndDate = new Date(endDate);
+            }
+            if (singleDate > 0) {
+                mySingleSelectionDate = new Date(singleDate);
+            }
+        }
+        if (spinnerPos > -1) {
+            reportSpinner.setSelection(spinnerPos);
+            handleSpinnerItemChange(spinnerPos);
+        } else {
+            reportSpinner.setSelection(0);
+            handleSpinnerItemChange(0);
+        }
+
+        // Setup the date picker fragment.
+        new Thread() {
+            @Override
+            public void run() {
+                AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
+                myStartDate = dao.getUsageDataStartDate();
+                getActivity().runOnUiThread(() -> {
+                    pickDateButton.setEnabled(true);
+                });
+            }
+        }.start();
+
         return root;
     }
 
@@ -113,19 +162,13 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.date_picker_button:
-                // Dummy dates, replace with actual ones.
-                @SuppressLint("SimpleDateFormat") SimpleDateFormat fmt = new SimpleDateFormat("mm-DD-yyyy");
-                try {
-
-                    DatePickerFragment
-                            .getInstance(REPORT_TYPES.get(myCurrentSpinnerItem).selectRange,
-                                    fmt.parse("01-01-2018").getTime(),
-                                    new Date().getTime())
-                            .setListener(this)
-                            .show(getChildFragmentManager(), "date_picker");
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                DatePickerFragment datePickerFragment =
+                        DatePickerFragment.getInstance(
+                                REPORT_TYPES.get(myCurrentSpinnerItem).selectRange,
+                                myStartDate.getTime(),
+                                UsageStatsUtil.getTomorrowMillis()
+                        ).setListener(ReportsFragment.this);
+                datePickerFragment.show(getChildFragmentManager(), "date_picker");
         }
     }
 
@@ -135,13 +178,21 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             return;
         }
 
-        String dateStr = ourDateFormat.format(selectedDates.get(0));
+        String dateStr = DATE_FORMAT.format(selectedDates.get(0));
         if (selectedDates.size() > 1) {
-            dateStr += " - " + ourDateFormat.format(selectedDates.get(selectedDates.size()-1));
+            dateStr += " - " + DATE_FORMAT.format(selectedDates.get(selectedDates.size()-1));
+
+            myRangeSelectionStartDate = selectedDates.get(0);
+            myRangeSelectionEndDate = selectedDates.get(selectedDates.size()-1);
+        } else {
+            mySingleSelectionDate = selectedDates.get(0);
         }
         myDatesText.setText(dateStr);
 
-        // TODO : populate appropriate fragment.
+        getChildFragmentManager().beginTransaction().replace(
+                R.id.reports_child_frame,
+                DayReportFragment.getInstance(selectedDates.get(0).getTime())
+        ).commit();
     }
 
     @Override
@@ -155,12 +206,35 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     public void onNothingSelected(AdapterView<?> parent) {}
 
     private void handleSpinnerItemChange(int newPosition) {
-        myCurrentSpinnerItem = newPosition;
+        myCurrentSpinnerItem = newPosition;git
         ReportType curType = REPORT_TYPES.get(newPosition);
-        Date startDate = curType.defaultStart,
-                endDate = curType.defaultEnd;
-        List<Date> selectedDates = (endDate == null) ? Collections.singletonList(startDate) :
-                Arrays.asList(startDate, endDate);
+
+        List<Date> selectedDates;
+        if (curType.defaultEnd == null) {
+            // We are in single date selection mode.
+            Date singleDate = (mySingleSelectionDate == null) ? curType.defaultStart : mySingleSelectionDate;
+            selectedDates = Collections.singletonList(singleDate);
+        } else {
+            // We are in range date selection mode.
+            Date startDate = (myRangeSelectionStartDate == null) ? curType.defaultStart : myRangeSelectionStartDate,
+                    endDate = (myRangeSelectionEndDate == null) ? curType.defaultEnd : myRangeSelectionEndDate;
+            selectedDates = Arrays.asList(startDate, endDate);
+        }
         onDateSelected(selectedDates);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mySingleSelectionDate != null) {
+            outState.putLong(KEY_SINGLE_DATE, mySingleSelectionDate.getTime());
+        }
+        if (myRangeSelectionStartDate != null) {
+            outState.putLong(KEY_START_DATE, myRangeSelectionStartDate.getTime());
+        }
+        if (myRangeSelectionEndDate != null) {
+            outState.putLong(KEY_END_DATE, myRangeSelectionEndDate.getTime());
+        }
+        outState.putInt(KEY_SPINNER_POSITION, myCurrentSpinnerItem);
     }
 }
