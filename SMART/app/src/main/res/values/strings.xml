@@ -34,4 +34,5 @@
     <string name="duration_in_category">in %s</string>
     <string name="log_my_mood">Take a selfie!</string>
     <string name="mood">Feeling</string>
+    <string name="others">Others</string>
 </resources>

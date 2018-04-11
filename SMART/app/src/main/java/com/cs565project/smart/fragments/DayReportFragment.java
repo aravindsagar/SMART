@@ -1,6 +1,7 @@
 package com.cs565project.smart.fragments;
 
 
+import android.animation.TimeInterpolator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -21,11 +22,12 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -46,9 +48,9 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,6 +61,8 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -68,22 +72,31 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     private static final String EXTRA_CATEGORY = "category";
 
     private static final float PIE_HOLE_RADIUS = 80f;
+    private static final float PIE_SCALE_FACTOR = 0.3f;
 
-    enum ViewState {TOTAL, PER_CATEGORY}
+    private static final int[] PIE_COLORS = {
+            rgb("#bf360c"), rgb("#006064"), rgb("#5d4037"), rgb("#827717"),
+            rgb("#f57f17"), rgb("#37474f"), rgb("#4a148c"), rgb("#ad1457"),
+            rgb("#006064"), rgb("#0d47a1"), rgb("#fdd835"), rgb("#ff1744"),
+            rgb("#000000")
+    };
+    private static final int MAX_ENTRIES = PIE_COLORS.length;
 
     // References to views.
-    private PieChart myPieChart;
+    private View myRootView;
+    private PieChart myPieChart, myPieChartSecondary;
     private SwipeRefreshLayout myRefreshLayout;
     private RecyclerView myLegend;
 
     // Our state.
-    private PieData myPieData;
+    private PieData myPieData, mySecondaryPieData;
+    private List<LegendInfo> myLegendInfos;
     private long myTotalUsageTime;
-    private Map<String, List<String>> myAdditionalLegendInfo;
-    private Map<String, Drawable> myAppIcons;
     private Date myDate;
-    private ViewState myViewState;
     private String myCurrentCategory;
+    private TimeInterpolator myInterpolator = new AccelerateDecelerateInterpolator();
+    private int myPieX, myMinimizedPieX;
+    private boolean myAnimatePie;
 
     // For background execution.
     private Executor myExecutor = Executors.newSingleThreadExecutor();
@@ -93,75 +106,117 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     private Runnable loadData = new Runnable() {
         @Override
         public void run() {
-            List<PieEntry> entries = new ArrayList<>();
+
+            // Read usage info from DB.
             AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(new Date(UsageStatsUtil.getStartOfDayMillis(myDate)));
+
+            // This map will hold the key value pairs to be inserted in the chart.
             Map<String, Long> usageMap = new HashMap<>();
+            Map<String, Long> secondaryUsageMap = new HashMap<>();
 
             // Initialize state with defaults.
-            myAdditionalLegendInfo = new HashMap<>();
-            myAppIcons = new HashMap<>();
+            Map<String, List<String>> additionalLegendInfo = new HashMap<>();
+            myLegendInfos = new ArrayList<>();
             myTotalUsageTime = 0;
 
+            // Populate the usageMap.
             for (DailyAppUsage appUsage : appUsages) {
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
                 if (AppInfo.NO_CATEGORY.equals(category)) { continue; }
 
-                // We have to collect different data depending on our state.
-                if (myViewState == ViewState.TOTAL) {
-                    myTotalUsageTime += appUsage.getDailyUseTime();
-                    if (usageMap.containsKey(category)) {
-                        usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
-                        myAdditionalLegendInfo.get(category).add(appDetails.getAppName());
-                    } else {
-                        usageMap.put(category, appUsage.getDailyUseTime());
-                        myAdditionalLegendInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
-                    }
-                } else if (myViewState == ViewState.PER_CATEGORY) {
-                    if (!myCurrentCategory.equals(category)) { continue; }
+                if (usageMap.containsKey(category)) {
+                    usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
+                    additionalLegendInfo.get(category).add(appDetails.getAppName());
+                } else {
+                    usageMap.put(category, appUsage.getDailyUseTime());
+                    additionalLegendInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
+                }
 
+                // If apps within a category are visible, we need to adjust the data accordingly.
+                if (isInSecondaryView()) {
+                    if ( myCurrentCategory.equals(category)) {
+                        myTotalUsageTime += appUsage.getDailyUseTime();
+                        secondaryUsageMap.put(appDetails.getPackageName(), appUsage.getDailyUseTime());
+                    }
+                } else {
                     myTotalUsageTime += appUsage.getDailyUseTime();
-                    usageMap.put(appDetails.getAppName(), appUsage.getDailyUseTime());
-                    myAdditionalLegendInfo.put(appDetails.getAppName(), Collections.singletonList(appDetails.getPackageName()));
-                    myAppIcons.put(appDetails.getAppName(), new AppInfo(appDetails.getPackageName(), getContext()).getAppIcon());
                 }
             }
 
-            List<String> categories = new ArrayList<>(usageMap.keySet());
-            Collections.sort(categories, (b, a) -> Long.compare(usageMap.get(a), usageMap.get(b)));
-            for (String category : categories) {
-                PieEntry entry = new PieEntry(usageMap.get(category), category);
-                Log.d(String.valueOf(usageMap.get(category)), category);
-                entries.add(entry);
-            }
-
-            ArrayList<Integer> colors = new ArrayList<>();
-
-
-            for (int c : ColorTemplate.JOYFUL_COLORS)
-                colors.add(c);
-
-            for (int c : ColorTemplate.COLORFUL_COLORS)
-                colors.add(c);
-
-            for (int c : ColorTemplate.VORDIPLOM_COLORS)
-                colors.add(c);
-
-            for (int c : ColorTemplate.LIBERTY_COLORS)
-                colors.add(c);
-
-            for (int c : ColorTemplate.PASTEL_COLORS)
-                colors.add(c);
-
+            List<PieEntry> entries = processUsageMap(usageMap, additionalLegendInfo, isInSecondaryView(), !isInSecondaryView());
             PieDataSet dataSet = new PieDataSet(entries, "App usage");
-            dataSet.setColors(colors);
+            dataSet.setColors(PIE_COLORS);
             dataSet.setDrawValues(false);
             myPieData = new PieData(dataSet);
+
+            if (isInSecondaryView()) {
+                List<PieEntry> secondaryEntries = processUsageMap(secondaryUsageMap,
+                        additionalLegendInfo, true, true);
+                PieDataSet secondaryDataSet = new PieDataSet(secondaryEntries, "App usage");
+                secondaryDataSet.setColors(PIE_COLORS);
+                secondaryDataSet.setDrawValues(false);
+                mySecondaryPieData = new PieData(secondaryDataSet);
+            }
+
             myHandler.post(postLoadData);
         }
+
+        private List<PieEntry> processUsageMap(
+                Map<String, Long> usageMap, Map<String, List<String>> additionalLegendInfo,
+                boolean isSecondaryData, boolean addToLegend) {
+
+            // Output list.
+            List<PieEntry> entries = new ArrayList<>();
+
+            // Add to output in the descending order of keys in the usageMap.
+            List<String> keys = new ArrayList<>(usageMap.keySet());
+            Collections.sort(keys, (b, a) -> Long.compare(usageMap.get(a), usageMap.get(b)));
+            int i = 0;
+            for (String key : keys) {
+                long usage = usageMap.get(key);
+                Drawable icon = null;
+                String title, subTitle;
+
+                if (isSecondaryData) {
+                    // In PER_CATEGORY state, usageMap is keyed using package names, but we want to
+                    // show app name as the title in chart. package name will be the subtitle.
+                    AppInfo appInfo = new AppInfo(key, getContext());
+                    title = appInfo.getAppName();
+                    subTitle = key;
+                    icon = appInfo.getAppIcon();
+                } else {
+                    // In TOTAL state, the categories are the titles, and apps in them are the subtitles.
+                    title = key;
+                    subTitle = buildSubtitle(additionalLegendInfo.get(key));
+                }
+
+                // We want to limit the number of entries in the chart.
+                if (i >= MAX_ENTRIES) {
+                    PieEntry lastEntry = entries.get(MAX_ENTRIES - 1);
+                    PieEntry entry = new PieEntry(usage + lastEntry.getValue(), getString(R.string.others));
+                    entries.set(MAX_ENTRIES-1, entry);
+
+                } else {
+                    PieEntry entry = new PieEntry(usage, title);
+                    entries.add(entry);
+                }
+
+                if (addToLegend) {
+                    myLegendInfos.add(new LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
+                }
+                i++;
+            }
+
+            return entries;
+        }
     };
+
+    private boolean isInSecondaryView() {
+        return myCurrentCategory != null && !myCurrentCategory.isEmpty();
+    }
 
     // Runnable to be run in the UI thread after our state has been updated.
     private Runnable postLoadData = new Runnable() {
@@ -170,33 +225,46 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             if (getActivity() == null) {
                 return;
             }
-            // Update the pie chart.
-            myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
+
+            // Update the main pie chart data.
+            if (myAnimatePie) {
+                myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
+                myAnimatePie = false;
+            }
             myPieChart.setData(myPieData);
+
+            if (isInSecondaryView()) {
+                myPieChartSecondary.animateY(600, Easing.EasingOption.EaseInOutQuad);
+                myPieChartSecondary.setData(mySecondaryPieData);
+            }
+
             // The center text shows duration, the current category being viewed, and the recorded mood.
             SpannableString centerTextDuration =
                     new SpannableString(UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()));
             centerTextDuration.setSpan(new RelativeSizeSpan(1.4f), 0, centerTextDuration.length(), 0);
             centerTextDuration.setSpan(new StyleSpan(Typeface.BOLD), 0, centerTextDuration.length(), 0);
-            String centerTextCategory = (myViewState == ViewState.TOTAL) ?
-                    getString(R.string.total) :
-                    String.format(getString(R.string.duration_in_category), Html.fromHtml(myCurrentCategory).toString());
+            String centerTextCategory = (isInSecondaryView()) ?
+                    String.format(getString(R.string.duration_in_category), Html.fromHtml(myCurrentCategory).toString()) :
+                    getString(R.string.total);
             SpannableString centerTextMood = new SpannableString(
                     getString(R.string.mood) + " " + getEmojiByUnicode(0x1F60A)); // TODO replace with emoji matching mood.
-//            centerTextMood.setSpan(new StyleSpan(ITALIC), 0, centerTextMood.length(), 0);
             CharSequence centerText = TextUtils.concat(centerTextDuration, "\n", centerTextCategory, "\n\n", centerTextMood);
 
-            myPieChart.setCenterText(centerText);
+            if (isInSecondaryView()) {
+                myPieChartSecondary.setCenterText(centerText);
+            } else {
+                myPieChart.setCenterText(centerText);
+            }
             myPieChart.invalidate();
+            myPieChartSecondary.invalidate();
 
             // Update the chart legend.
             PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new PieLegendAdapter(myPieData, myAdditionalLegendInfo, myTotalUsageTime,
-                        myAppIcons, getContext(), DayReportFragment.this);
+                adapter = new PieLegendAdapter(myLegendInfos, myTotalUsageTime, getContext(), DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
-                adapter.setData(myPieData, myAdditionalLegendInfo, myTotalUsageTime, myAppIcons);
+                adapter.setData(myLegendInfos, myTotalUsageTime);
             }
             myLegend.getAdapter().notifyDataSetChanged();
 
@@ -227,46 +295,73 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_day_report, container, false);
+        myRootView = inflater.inflate(R.layout.fragment_day_report, container, false);
 
         // Get references to the required views.
-        myRefreshLayout = rootView.findViewById(R.id.swipe_refresh);
-        myPieChart = rootView.findViewById(R.id.pie_chart);
-        myLegend = rootView.findViewById(R.id.pie_categories_list);
+        myRefreshLayout = myRootView.findViewById(R.id.swipe_refresh);
+        myPieChart = myRootView.findViewById(R.id.pie_chart);
+        myPieChartSecondary = myRootView.findViewById(R.id.pie_chart_secondary);
+        myPieChartSecondary.setData(new PieData(new PieDataSet(Collections.singletonList(new PieEntry(10, "Test")), "test")));
+        myLegend = myRootView.findViewById(R.id.pie_categories_list);
 
-        // Populate some state.
-        if (getArguments() != null) {
-            myCurrentCategory = getArguments().getString(EXTRA_CATEGORY);
-        }
-        if (myCurrentCategory == null || myCurrentCategory.isEmpty()) {
-            myViewState = ViewState.TOTAL;
-            myCurrentCategory = "";
-        } else {
-            myViewState = ViewState.PER_CATEGORY;
-        }
+        // Listen for layout completion, so that we can start animations.
+        myPieChart.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                init();
+                myPieChart.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+
+        return myRootView;
+    }
+
+    private void init() {
+        // Get position and size of our pie-chart and derive animation translation and scaling.
+        myMinimizedPieX = (int) (-PIE_SCALE_FACTOR * myPieChart.getWidth());
+        myPieX = (int) myPieChart.getX();
 
         // Init our views.
-        myRefreshLayout.setOnRefreshListener(this::setPieData);
+        myRefreshLayout.setOnRefreshListener(this::onRefresh);
         setupPieAndLegendView();
-        setPieData();
+        // Populate some state. This calls setPieData internally.
+        String category = null;
+        if (getArguments() != null) {
+            category = getArguments().getString(EXTRA_CATEGORY);
+            myAnimatePie = false;
+        } else {
+            myAnimatePie = true;
+        }
+        if (category == null || category.isEmpty()) {
+            myCurrentCategory = "invalid"; // Ugly hack, ugh.
+            switchToTotalView();
+        } else {
+            switchToPerCategoryView(category);
+        }
 
-        rootView.setFocusableInTouchMode(true);
-        rootView.requestFocus();
-        rootView.setOnKeyListener(this);
-        return rootView;
+        myRootView.setFocusableInTouchMode(true);
+        myRootView.requestFocus();
+        myRootView.setOnKeyListener(this);
+    }
+
+    private void onRefresh() {
+        myAnimatePie = true;
+        setPieData();
     }
 
     private void setupPieAndLegendView() {
-        myPieChart.getDescription().setEnabled(false);
-        myPieChart.getLegend().setEnabled(false);
-        myPieChart.setOnChartValueSelectedListener(this);
-        myPieChart.setUsePercentValues(true);
-        myPieChart.setEntryLabelColor(Color.BLACK);
-        myPieChart.setHoleRadius(PIE_HOLE_RADIUS);
-        myPieChart.setTransparentCircleRadius(PIE_HOLE_RADIUS+5);
-        myPieChart.setDrawCenterText(true);
-        myPieChart.setCenterTextSize(22);
-        myPieChart.setDrawEntryLabels(false);
+        for (PieChart pieChart : Arrays.asList(myPieChart, myPieChartSecondary)) {
+            pieChart.getDescription().setEnabled(false);
+            pieChart.getLegend().setEnabled(false);
+            pieChart.setOnChartValueSelectedListener(this);
+            pieChart.setUsePercentValues(true);
+            pieChart.setEntryLabelColor(Color.BLACK);
+            pieChart.setHoleRadius(PIE_HOLE_RADIUS);
+            pieChart.setTransparentCircleRadius(PIE_HOLE_RADIUS + 5);
+            pieChart.setDrawCenterText(true);
+            pieChart.setCenterTextSize(22);
+            pieChart.setDrawEntryLabels(false);
+        }
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
@@ -284,42 +379,54 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
 
     @Override
     public void onValueSelected(Entry e, Highlight h) {
-        switchToPerCategoryView(((PieEntry) e).getLabel());
+        String category = ((PieEntry) e).getLabel();
+        if (!category.equals(getString(R.string.others))) {
+            switchToPerCategoryView(category);
+        }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        switchToPerCategoryView(myPieData.getDataSet().getEntryForIndex(position).getLabel());
+        switchToPerCategoryView(myLegendInfos.get(position).title);
     }
 
     private void switchToPerCategoryView(String category) {
         // If we are already in details view, nothing to do.
-        if (myViewState == ViewState.PER_CATEGORY) {
+        if (isInSecondaryView()) {
             return;
         }
 
-        myViewState = ViewState.PER_CATEGORY;
         myCurrentCategory = category;
+        myPieChart.animate().x(myMinimizedPieX).scaleX(PIE_SCALE_FACTOR).scaleY(PIE_SCALE_FACTOR)
+                .setInterpolator(myInterpolator).start();
+        myPieChartSecondary.animate().alpha(1f).scaleX(1f).scaleY(1f).setInterpolator(myInterpolator).start();
         setPieData();
+    }
+
+    private void switchToTotalView() {
+        goBack();
     }
 
     @Override
     public void onNothingSelected() {
-
+        switchToTotalView();
     }
 
     /**
      * Handle back button press. Return whether the back press was consumed by the fragment.
      */
     public boolean goBack() {
-        if (myViewState == ViewState.TOTAL) {
+        if (!isInSecondaryView()) {
             return false;
         }
 
         // We are in details view. Go back to total view and consume the button press so that
         // our parent does not go back.
-        myViewState = ViewState.TOTAL;
         myCurrentCategory = "";
+
+        // Animations!
+        myPieChart.animate().x(myPieX).scaleX(1f).scaleY(1f).setInterpolator(myInterpolator).start();
+        myPieChartSecondary.animate().alpha(0f).scaleX(0f).scaleY(0f).setInterpolator(myInterpolator).start();
         setPieData();
         return true;
     }
@@ -333,32 +440,41 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         return new String(Character.toChars(unicode));
     }
 
+    private String buildSubtitle(List<String> items) {
+        if (getContext() == null) return null;
+
+        StringBuilder sb = new StringBuilder();
+        if (items.size() <= 0) {
+            sb.append("");
+        } else if (items.size() == 1) {
+            sb.append(items.get(0));
+        } else if (items.size() == 2) {
+            sb.append(items.get(0)).append(" ").append("and").append(" ").append(items.get(1));
+        } else {
+            sb.append(items.get(0)).append(", ").append(items.get(1))
+                    .append(String.format(Locale.getDefault(), getContext().getString(R.string.n_more_apps), items.size() - 2));
+        }
+        return sb.toString();
+    }
+
     private static class PieLegendAdapter extends RecyclerView.Adapter<PieLegendAdapter.ViewHolder> {
 
-        private PieData myPieData;
-        private Map<String, List<String>> myAdditionalLegendInfo;
+        private List<LegendInfo> myLegendInfos;
         private long myTotal;
         private Context myContext;
         private AdapterView.OnItemClickListener myListener;
-        private Map<String, Drawable> myAppIcons;
 
-        PieLegendAdapter(PieData pieData, Map<String, List<String>> categoryApps, long total,
-                         Map<String, Drawable> appIcons, Context context,
-                         AdapterView.OnItemClickListener listener) {
-            this.myPieData = pieData;
-            this.myAdditionalLegendInfo = categoryApps;
-            this.myTotal = total;
-            this.myAppIcons = appIcons;
-            this.myContext = context;
-            this.myListener = listener;
+        PieLegendAdapter(List<LegendInfo> myLegendInfos, long myTotal, Context myContext,
+                                AdapterView.OnItemClickListener myListener) {
+            this.myLegendInfos = myLegendInfos;
+            this.myTotal = myTotal;
+            this.myContext = myContext;
+            this.myListener = myListener;
         }
 
-        public void setData(PieData pieData, Map<String, List<String>> categoryApps, long total,
-                            Map<String, Drawable> appIcons) {
-            this.myPieData = pieData;
-            this.myAdditionalLegendInfo = categoryApps;
-            this.myTotal = total;
-            this.myAppIcons = appIcons;
+        public void setData(List<LegendInfo> myLegendInfos, long myTotal) {
+            this.myLegendInfos = myLegendInfos;
+            this.myTotal = myTotal;
         }
 
         @NonNull
@@ -371,11 +487,13 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            PieEntry entry = myPieData.getDataSet().getEntryForIndex(position);
+            LegendInfo entry = myLegendInfos.get(position);
 
             // Setup the background progress bar.
-            holder.progressBar.setProgress((int) (entry.getValue() * 100 / myTotal));
-            int color = myPieData.getColors()[position];
+            if (myTotal > 0) {
+                holder.progressBar.setProgress((int) (entry.usageTime * 100 / myTotal));
+            }
+            int color = entry.color;
             int lighterColor = Color.argb(50, Color.red(color), Color.green(color), Color.blue(color));
             holder.progressDrawable.setColorFilter(lighterColor, PorterDuff.Mode.MULTIPLY);
 
@@ -383,44 +501,26 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             holder.legendColorBox.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
 
             // Set title and subtitle.
-            holder.title.setText(Html.fromHtml(entry.getLabel()));
-            String subtitle = buildSubtitle(myAdditionalLegendInfo.get(entry.getLabel()));
-            holder.subtitle.setText(subtitle);
+            holder.title.setText(Html.fromHtml(entry.title));
+            holder.subtitle.setText(Html.fromHtml(entry.subTitle));
 
             // Set app icon if available.
-            Drawable icon;
-
-            if (myAppIcons != null && (icon = myAppIcons.get(entry.getLabel())) != null) {
-                holder.appIcon.setImageDrawable(icon);
+            if (entry.icon != null) {
+                holder.appIcon.setImageDrawable(entry.icon);
                 holder.appIcon.setVisibility(View.VISIBLE);
             } else {
                 holder.appIcon.setVisibility(View.GONE);
             }
 
             // Set duration.
-            holder.duration.setText(UsageStatsUtil.formatDuration((long) entry.getValue(), myContext));
+            holder.duration.setText(UsageStatsUtil.formatDuration(entry.usageTime, myContext));
 
             holder.root.setOnClickListener(v -> myListener.onItemClick(null, v, position, position));
         }
 
         @Override
         public int getItemCount() {
-            return myPieData.getEntryCount();
-        }
-
-        private String buildSubtitle(List<String> items) {
-            StringBuilder sb = new StringBuilder();
-            if (items.size() <= 0) {
-                sb.append("");
-            } else if (items.size() == 1) {
-                sb.append(items.get(0));
-            } else if (items.size() == 2) {
-                sb.append(items.get(0)).append(" ").append("and").append(" ").append(items.get(1));
-            } else {
-                sb.append(items.get(0)).append(", ").append(items.get(1))
-                        .append(String.format(Locale.getDefault(), myContext.getString(R.string.n_more_apps), items.size() - 2));
-            }
-            return sb.toString();
+            return myLegendInfos.size();
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
@@ -443,6 +543,21 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
                 duration = itemView.findViewById(R.id.legend_duration);
                 appIcon = itemView.findViewById(R.id.legend_app_icon);
             }
+        }
+    }
+
+    private static class LegendInfo {
+        String title, subTitle;
+        Drawable icon;
+        long usageTime;
+        int color;
+
+        LegendInfo(String title, String subTitle, Drawable icon, long usageTime, int color) {
+            this.title = title;
+            this.subTitle = subTitle;
+            this.icon = icon;
+            this.usageTime = usageTime;
+            this.color = color;
         }
     }
 }

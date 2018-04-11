@@ -15,12 +15,25 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:animateLayoutChanges="true">
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/pie_chart"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginBottom="14dp"
-                android:layout_marginTop="12dp"/>
+                android:layout_height="wrap_content">
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie_chart"
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_margin="12dp"
+                    android:layout_centerInParent="true"/>
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie_chart_secondary"
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_margin="12dp"
+                    android:translationX="20dp"
+                    android:layout_centerInParent="true"
+                    android:scaleX="0"
+                    android:scaleY="0"/>
+            </RelativeLayout>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
