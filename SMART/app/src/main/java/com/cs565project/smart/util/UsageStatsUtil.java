@@ -18,8 +18,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import static android.text.format.DateUtils.WEEK_IN_MILLIS;
 
@@ -36,13 +34,7 @@ public class UsageStatsUtil {
         List<UsageStats> appList = mUsageStatsManager
                 .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  time - 1000*100, time);
         if (appList != null && appList.size() > 0) {
-            SortedMap<Long, UsageStats> mySortedMap = new TreeMap<>();
-            for (UsageStats usageStats : appList) {
-                mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
-            }
-            if (!mySortedMap.isEmpty()) {
-                 return mySortedMap.get(mySortedMap.lastKey()).getPackageName();
-            }
+            return Collections.max(appList, (a, b) -> Long.compare(b.getLastTimeUsed(), a.getLastTimeUsed())).getPackageName();
         }
         return null;
     }

@@ -12,10 +12,15 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -75,6 +80,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     private PieData myPieData;
     private long myTotalUsageTime;
     private Map<String, List<String>> myAdditionalLegendInfo;
+    private Map<String, Drawable> myAppIcons;
     private Date myDate;
     private ViewState myViewState;
     private String myCurrentCategory;
@@ -94,6 +100,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
 
             // Initialize state with defaults.
             myAdditionalLegendInfo = new HashMap<>();
+            myAppIcons = new HashMap<>();
             myTotalUsageTime = 0;
 
             for (DailyAppUsage appUsage : appUsages) {
@@ -118,6 +125,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
                     myTotalUsageTime += appUsage.getDailyUseTime();
                     usageMap.put(appDetails.getAppName(), appUsage.getDailyUseTime());
                     myAdditionalLegendInfo.put(appDetails.getAppName(), Collections.singletonList(appDetails.getPackageName()));
+                    myAppIcons.put(appDetails.getAppName(), new AppInfo(appDetails.getPackageName(), getContext()).getAppIcon());
                 }
             }
 
@@ -165,27 +173,36 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             // Update the pie chart.
             myPieChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
             myPieChart.setData(myPieData);
-            String centerTextEnding = (myViewState == ViewState.TOTAL) ?
+            // The center text shows duration, the current category being viewed, and the recorded mood.
+            SpannableString centerTextDuration =
+                    new SpannableString(UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()));
+            centerTextDuration.setSpan(new RelativeSizeSpan(1.4f), 0, centerTextDuration.length(), 0);
+            centerTextDuration.setSpan(new StyleSpan(Typeface.BOLD), 0, centerTextDuration.length(), 0);
+            String centerTextCategory = (myViewState == ViewState.TOTAL) ?
                     getString(R.string.total) :
-                    String.format(getString(R.string.duration_in_category), myCurrentCategory);
-            String centerText = UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()) +
-                    " " + centerTextEnding;
-            myPieChart.setCenterText(Html.fromHtml(centerText));
+                    String.format(getString(R.string.duration_in_category), Html.fromHtml(myCurrentCategory).toString());
+            SpannableString centerTextMood = new SpannableString(
+                    getString(R.string.mood) + " " + getEmojiByUnicode(0x1F60A)); // TODO replace with emoji matching mood.
+//            centerTextMood.setSpan(new StyleSpan(ITALIC), 0, centerTextMood.length(), 0);
+            CharSequence centerText = TextUtils.concat(centerTextDuration, "\n", centerTextCategory, "\n\n", centerTextMood);
+
+            myPieChart.setCenterText(centerText);
             myPieChart.invalidate();
 
             // Update the chart legend.
             PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
                 adapter = new PieLegendAdapter(myPieData, myAdditionalLegendInfo, myTotalUsageTime,
-                        getContext(), DayReportFragment.this);
+                        myAppIcons, getContext(), DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
-                adapter.setData(myPieData, myAdditionalLegendInfo, myTotalUsageTime);
+                adapter.setData(myPieData, myAdditionalLegendInfo, myTotalUsageTime, myAppIcons);
             }
             myLegend.getAdapter().notifyDataSetChanged();
 
             // Hide any loading spinners.
             myRefreshLayout.setRefreshing(false);
+
         }
     };
 
@@ -245,17 +262,17 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         myPieChart.setOnChartValueSelectedListener(this);
         myPieChart.setUsePercentValues(true);
         myPieChart.setEntryLabelColor(Color.BLACK);
-        myPieChart.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
-        myPieChart.setCenterTextSize(26);
         myPieChart.setHoleRadius(PIE_HOLE_RADIUS);
         myPieChart.setTransparentCircleRadius(PIE_HOLE_RADIUS+5);
         myPieChart.setDrawCenterText(true);
+        myPieChart.setCenterTextSize(22);
         myPieChart.setDrawEntryLabels(false);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
                 new DividerItemDecoration(Objects.requireNonNull(getContext()), layoutManager.getOrientation());
         myLegend.addItemDecoration(dividerItemDecoration);
+        myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;
         myDate = new Date(getArguments().getLong(EXTRA_DATE, System.currentTimeMillis()));
     }
@@ -312,6 +329,10 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         return event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && goBack();
     }
 
+    private String getEmojiByUnicode(int unicode){
+        return new String(Character.toChars(unicode));
+    }
+
     private static class PieLegendAdapter extends RecyclerView.Adapter<PieLegendAdapter.ViewHolder> {
 
         private PieData myPieData;
@@ -319,20 +340,25 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         private long myTotal;
         private Context myContext;
         private AdapterView.OnItemClickListener myListener;
+        private Map<String, Drawable> myAppIcons;
 
         PieLegendAdapter(PieData pieData, Map<String, List<String>> categoryApps, long total,
-                         Context context, AdapterView.OnItemClickListener listener) {
+                         Map<String, Drawable> appIcons, Context context,
+                         AdapterView.OnItemClickListener listener) {
             this.myPieData = pieData;
             this.myAdditionalLegendInfo = categoryApps;
             this.myTotal = total;
+            this.myAppIcons = appIcons;
             this.myContext = context;
             this.myListener = listener;
         }
 
-        public void setData(PieData pieData, Map<String, List<String>> categoryApps, long total) {
+        public void setData(PieData pieData, Map<String, List<String>> categoryApps, long total,
+                            Map<String, Drawable> appIcons) {
             this.myPieData = pieData;
             this.myAdditionalLegendInfo = categoryApps;
             this.myTotal = total;
+            this.myAppIcons = appIcons;
         }
 
         @NonNull
@@ -358,7 +384,18 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
 
             // Set title and subtitle.
             holder.title.setText(Html.fromHtml(entry.getLabel()));
-            holder.subtitle.setText(buildSubtitle(myAdditionalLegendInfo.get(entry.getLabel())));
+            String subtitle = buildSubtitle(myAdditionalLegendInfo.get(entry.getLabel()));
+            holder.subtitle.setText(subtitle);
+
+            // Set app icon if available.
+            Drawable icon;
+
+            if (myAppIcons != null && (icon = myAppIcons.get(entry.getLabel())) != null) {
+                holder.appIcon.setImageDrawable(icon);
+                holder.appIcon.setVisibility(View.VISIBLE);
+            } else {
+                holder.appIcon.setVisibility(View.GONE);
+            }
 
             // Set duration.
             holder.duration.setText(UsageStatsUtil.formatDuration((long) entry.getValue(), myContext));
@@ -391,7 +428,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             View root;
             ProgressBar progressBar;
             Drawable progressDrawable;
-            ImageView legendColorBox;
+            ImageView legendColorBox, appIcon;
             TextView title, subtitle, duration;
 
             ViewHolder(View itemView) {
@@ -404,6 +441,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
                 title = itemView.findViewById(R.id.legend_title);
                 subtitle = itemView.findViewById(R.id.legend_subtitle);
                 duration = itemView.findViewById(R.id.legend_duration);
+                appIcon = itemView.findViewById(R.id.legend_app_icon);
             }
         }
     }

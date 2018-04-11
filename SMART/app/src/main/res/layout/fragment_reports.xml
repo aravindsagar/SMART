@@ -15,7 +15,8 @@ that which will show reports corresponding to the selections.-->
         android:orientation="horizontal"
         android:gravity="center_horizontal"
         android:background="#10000000"
-        android:padding="14dp">
+        android:padding="14dp"
+        android:elevation="6dp">
 
         <!--Spinner to switch between daily, weekly, trend views-->
         <android.support.v7.widget.AppCompatSpinner

@@ -121,6 +121,9 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
 
         myDatesText = root.findViewById(R.id.date_selected_text);
 
+        /*TextView selfieButton = root.findViewById(R.id.button_log_mood);
+        selfieButton.setOnClickListener(this);*/
+
         // Restore from saved instance state if necessary.
         int spinnerPos = 0;
         if (savedInstanceState != null) {
@@ -157,9 +160,8 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             public void run() {
                 AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
                 myStartDate = dao.getUsageDataStartDate();
-                getActivity().runOnUiThread(() -> {
-                    pickDateButton.setEnabled(true);
-                });
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> pickDateButton.setEnabled(true));
             }
         }.start();
 
@@ -177,6 +179,10 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
                                 UsageStatsUtil.getTomorrowMillis()
                         ).setListener(ReportsFragment.this);
                 datePickerFragment.show(getChildFragmentManager(), FRAGMENT_DAY_TAG);
+                break;
+            /*case R.id.button_log_mood:
+                // TODO start activity to log mood.
+                break;*/
         }
     }
 
