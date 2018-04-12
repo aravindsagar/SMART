@@ -34,7 +34,7 @@ public class UsageStatsUtil {
         List<UsageStats> appList = mUsageStatsManager
                 .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  time - 1000*100, time);
         if (appList != null && appList.size() > 0) {
-            return Collections.max(appList, (a, b) -> Long.compare(b.getLastTimeUsed(), a.getLastTimeUsed())).getPackageName();
+            return Collections.max(appList, (a, b) -> Long.compare(a.getLastTimeUsed(), b.getLastTimeUsed())).getPackageName();
         }
         return null;
     }

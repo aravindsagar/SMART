@@ -69,7 +69,7 @@ public class DbUtils {
         Set<String> dbApps = new HashSet<>(dao.getAppPackageNames());
         List<DailyAppUsage> toInsert = new ArrayList<>(todayStats.size());
         for (UsageStats usageStats : todayStats) {
-            // Log.d("Usage stats received", usageStats.getPackageName());
+//             Log.d("Usage stats received", usageStats.getPackageName() + ", " + usageStats.getTotalTimeInForeground()/1000);
             if (!dbApps.contains(usageStats.getPackageName())) continue;
             toInsert.add(new DailyAppUsage(
                     usageStats.getPackageName(),

@@ -35,4 +35,9 @@
     <string name="log_my_mood">Take a selfie!</string>
     <string name="mood">Feeling</string>
     <string name="others">Others</string>
+    <string name="restricted_apps">Restricted apps</string>
+    <string name="rec_restrictions">Recommended restrictions</string>
+    <string name="other_apps">Other apps</string>
+    <string name="restricted">Restricted</string>
+    <string name="recommended">Recommended</string>
 </resources>

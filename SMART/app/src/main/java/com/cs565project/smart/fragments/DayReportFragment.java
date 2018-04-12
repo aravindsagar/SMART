@@ -2,6 +2,7 @@ package com.cs565project.smart.fragments;
 
 
 import android.animation.TimeInterpolator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -11,7 +12,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -24,6 +25,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -42,12 +44,9 @@ import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +65,7 @@ import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayReportFragment extends Fragment implements OnChartValueSelectedListener, AdapterView.OnItemClickListener, View.OnKeyListener {
+public class DayReportFragment extends Fragment implements AdapterView.OnItemClickListener, View.OnKeyListener {
 
     private static final String EXTRA_DATE = "extra_date";
     private static final String EXTRA_CATEGORY = "category";
@@ -108,7 +107,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         public void run() {
 
             // Read usage info from DB.
-            AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
+            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(new Date(UsageStatsUtil.getStartOfDayMillis(myDate)));
 
             // This map will hold the key value pairs to be inserted in the chart.
@@ -183,7 +182,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
                 if (isSecondaryData) {
                     // In PER_CATEGORY state, usageMap is keyed using package names, but we want to
                     // show app name as the title in chart. package name will be the subtitle.
-                    AppInfo appInfo = new AppInfo(key, getContext());
+                    AppInfo appInfo = new AppInfo(key, getActivity());
                     title = appInfo.getAppName();
                     subTitle = key;
                     icon = appInfo.getAppIcon();
@@ -261,7 +260,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             // Update the chart legend.
             PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new PieLegendAdapter(myLegendInfos, myTotalUsageTime, getContext(), DayReportFragment.this);
+                adapter = new PieLegendAdapter(myLegendInfos, myTotalUsageTime, getActivity(), DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
                 adapter.setData(myLegendInfos, myTotalUsageTime);
@@ -349,11 +348,11 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
         setPieData();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupPieAndLegendView() {
         for (PieChart pieChart : Arrays.asList(myPieChart, myPieChartSecondary)) {
             pieChart.getDescription().setEnabled(false);
             pieChart.getLegend().setEnabled(false);
-            pieChart.setOnChartValueSelectedListener(this);
             pieChart.setUsePercentValues(true);
             pieChart.setEntryLabelColor(Color.BLACK);
             pieChart.setHoleRadius(PIE_HOLE_RADIUS);
@@ -362,10 +361,18 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             pieChart.setCenterTextSize(22);
             pieChart.setDrawEntryLabels(false);
         }
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        View.OnTouchListener existingPieListener = myPieChart.getOnTouchListener();
+        myPieChart.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                switchToTotalView();
+            }
+            return existingPieListener.onTouch(v, event);
+        });
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
-                new DividerItemDecoration(Objects.requireNonNull(getContext()), layoutManager.getOrientation());
+                new DividerItemDecoration(Objects.requireNonNull(getActivity()), layoutManager.getOrientation());
         myLegend.addItemDecoration(dividerItemDecoration);
         myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;
@@ -375,14 +382,6 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     private void setPieData() {
         myRefreshLayout.setRefreshing(true);
         myExecutor.execute(loadData);
-    }
-
-    @Override
-    public void onValueSelected(Entry e, Highlight h) {
-        String category = ((PieEntry) e).getLabel();
-        if (!category.equals(getString(R.string.others))) {
-            switchToPerCategoryView(category);
-        }
     }
 
     @Override
@@ -405,11 +404,6 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
 
     private void switchToTotalView() {
         goBack();
-    }
-
-    @Override
-    public void onNothingSelected() {
-        switchToTotalView();
     }
 
     /**
@@ -441,7 +435,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
     }
 
     private String buildSubtitle(List<String> items) {
-        if (getContext() == null) return null;
+        if (getActivity() == null) return null;
 
         StringBuilder sb = new StringBuilder();
         if (items.size() <= 0) {
@@ -452,7 +446,7 @@ public class DayReportFragment extends Fragment implements OnChartValueSelectedL
             sb.append(items.get(0)).append(" ").append("and").append(" ").append(items.get(1));
         } else {
             sb.append(items.get(0)).append(", ").append(items.get(1))
-                    .append(String.format(Locale.getDefault(), getContext().getString(R.string.n_more_apps), items.size() - 2));
+                    .append(String.format(Locale.getDefault(), getActivity().getString(R.string.n_more_apps), items.size() - 2));
         }
         return sb.toString();
     }

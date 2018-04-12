@@ -1,11 +1,11 @@
 package com.cs565project.smart;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Setup the tabs.
         TabLayout tabs = findViewById(R.id.tabs);
         ViewPager pager = findViewById(R.id.main_viewpager);
-        MainTabsAdapter adapter = new MainTabsAdapter(getSupportFragmentManager());
+        MainTabsAdapter adapter = new MainTabsAdapter(getFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
 

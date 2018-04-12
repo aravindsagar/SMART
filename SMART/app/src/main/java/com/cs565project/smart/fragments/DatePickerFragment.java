@@ -2,10 +2,10 @@ package com.cs565project.smart.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 
 import com.cs565project.smart.R;
 import com.savvi.rangedatepicker.CalendarPickerView;
@@ -75,7 +75,7 @@ public class DatePickerFragment extends DialogFragment implements DialogInterfac
             throw new IllegalStateException("Parent activity cannot be null");
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         Date startDate = new Date(args.getLong(KEY_START_DATE)),
                 endDate = new Date(args.getLong(KEY_END_DATE));

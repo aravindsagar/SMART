@@ -21,6 +21,9 @@ public interface AppDao {
     @Query("SELECT * FROM DailyAppUsage WHERE date = (:date)")
     List<DailyAppUsage> getAppUsage(Date date);
 
+    @Query("SELECT * FROM DailyAppUsage WHERE packageName = (:packageName)")
+    List<DailyAppUsage> getAppUsage(String packageName);
+
     @Query("SELECT MIN(date) FROM DailyAppUsage")
     Date getUsageDataStartDate();
 

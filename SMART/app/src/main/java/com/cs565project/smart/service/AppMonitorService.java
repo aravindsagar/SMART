@@ -17,10 +17,14 @@ import android.view.WindowManager;
 
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
+import com.cs565project.smart.db.AppDao;
+import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.util.DbUtils;
 import com.cs565project.smart.util.UsageStatsUtil;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
@@ -62,10 +66,10 @@ public class AppMonitorService extends Service {
         public void run() {
             cycleCount++;
             String currentApp = myUsageStatsUtil.getForegroundApp();
-            // Log.d("CURRENT_APP", currentApp + "");
+//             Log.d("CURRENT_APP", currentApp + "");
 
             // Adding/removing overlay should happen in the main thread.
-            if ("com.google.android.apps.messaging".equals(currentApp)) {
+            if (shouldBlockApp(currentApp)) {
                 myHandler.post(myShowOverlay);
 
             } else if (!"android".equals(currentApp) && myOverlay.isVisible()) {
@@ -185,5 +189,15 @@ public class AppMonitorService extends Service {
             assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
         }
+    }
+
+    private boolean shouldBlockApp(String packageName) {
+        AppDao dao = AppDatabase.getAppDatabase(AppMonitorService.this).appDao();
+        AppDetails details = dao.getAppDetails(packageName);
+        DailyAppUsage appUsage = dao.getAppUsage(packageName, new Date(UsageStatsUtil.getStartOfDayMillis(new Date())));
+
+        return details != null && appUsage != null &&
+                details.getThresholdTime() > 0 && details.getThresholdTime() < appUsage.getDailyUseTime();
+
     }
 }

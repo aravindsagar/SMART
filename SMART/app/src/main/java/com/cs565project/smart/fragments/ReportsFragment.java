@@ -4,7 +4,7 @@ package com.cs565project.smart.fragments;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -114,7 +114,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
 
         Spinner reportSpinner = root.findViewById(R.id.report_view_spinner);
         ArrayAdapter<ReportType> reportTypeArrayAdapter =
-                new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, REPORT_TYPES);
+                new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, REPORT_TYPES);
         reportTypeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         reportSpinner.setAdapter(reportTypeArrayAdapter);
         reportSpinner.setOnItemSelectedListener(this);
@@ -158,7 +158,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         new Thread() {
             @Override
             public void run() {
-                AppDao dao = AppDatabase.getAppDatabase(getContext()).appDao();
+                AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
                 myStartDate = dao.getUsageDataStartDate();
                 if (getActivity() == null) return;
                 getActivity().runOnUiThread(() -> pickDateButton.setEnabled(true));
