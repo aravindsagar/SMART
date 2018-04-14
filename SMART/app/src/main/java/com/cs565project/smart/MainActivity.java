@@ -1,7 +1,11 @@
 package com.cs565project.smart;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -13,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Pair;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +25,11 @@ import com.cs565project.smart.fragments.ReportsFragment;
 import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.service.AppMonitorService;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,6 +39,9 @@ import java.util.List;
  * {@link MainTabsAdapter}.
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final int REQUEST_CAMERA = 1862;
+    private static final int SELECT_FILE    = 1863;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,17 +86,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        Intent intent;
         switch (v.getId()) {
             case R.id.logout:
                 Toast.makeText(this, "Logging out", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.settings:
-                Intent intent = new Intent(this, SettingsActivity.class);
+                intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 break;
             case R.id.toggle_service:
                 startService(new Intent(this, AppMonitorService.class)
                         .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
+                break;
+            case R.id.test_cam_btn:
+                // Runtime permission needed in Lollipop?
+                intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent, REQUEST_CAMERA);
+                break;
+            case R.id.gallery_btn:
+                intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Image"), SELECT_FILE);
                 break;
         }
     }
@@ -123,5 +148,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public CharSequence getPageTitle(int position) {
             return FRAGMENT_CLASSES.get(position).second;
         }
+    }
+
+    @Override
+    public void onActivityResult(int rqCode, int result, Intent data) {
+        super.onActivityResult(rqCode, result, data);
+        if(result == Activity.RESULT_OK) {
+            if(rqCode == REQUEST_CAMERA) {
+                onCaptureImageResult(data);
+            }
+            else if(rqCode == SELECT_FILE) {
+                onSelectFromGalleryResult(data);
+            }
+        }
+    }
+
+    private void onCaptureImageResult(Intent data) {
+        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+        File destination = new File(Environment.getExternalStorageDirectory(),
+                System.currentTimeMillis() + ".jpg");
+        FileOutputStream fo;
+        try {
+            destination.createNewFile();
+            fo = new FileOutputStream(destination);
+            fo.write(bytes.toByteArray());
+            fo.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ((ImageView)findViewById(R.id.ivImage)).setImageBitmap(thumbnail);
+    }
+
+    private void onSelectFromGalleryResult(Intent data) {
+        Bitmap bm=null;
+        if (data != null) {
+            try {
+                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        ((ImageView)findViewById(R.id.ivImage)).setImageBitmap(bm);
     }
 }

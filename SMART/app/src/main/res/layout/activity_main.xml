@@ -67,10 +67,29 @@
                 style="@style/SeparatorStyle"/>
 
             <TextView
-                style="@style/NavDrawerItemStyle"
                 android:id="@+id/logout"
+                style="@style/NavDrawerItemStyle"
                 android:drawableStart="@drawable/ic_logoff"
-                android:text="@string/logout"/>
+                android:text="@string/logout" />
+
+            <Button
+                android:id="@+id/test_cam_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Test Camera" />
+
+            <Button
+                android:id="@+id/gallery_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gallery" />
+
+            <ImageView
+                android:id="@+id/ivImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_launcher_foreground" />
+
         </LinearLayout>
     </android.support.design.widget.NavigationView>
 
