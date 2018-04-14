@@ -85,4 +85,33 @@ public class DbUtils {
         dao.insertAppUsage(toInsert);
         return results;
     }
+
+    public static class SaveRestrictionToDb implements Runnable {
+
+        Context context;
+        String packageName;
+        int duration;
+        Runnable postSave;
+
+        public SaveRestrictionToDb(Context context, String packageName, int duration, Runnable postSave) {
+            this.context = context;
+            this.packageName = packageName;
+            this.duration = duration;
+            this.postSave = postSave;
+        }
+
+        @Override
+        public void run() {
+            if (duration == 0) duration = -1;
+
+            AppDao dao = AppDatabase.getAppDatabase(context).appDao();
+            AppDetails appDetails = dao.getAppDetails(packageName);
+            dao.updateAppDetails(new AppDetails(
+                    appDetails.getPackageName(),
+                    appDetails.getAppName(),
+                    appDetails.getCategory(),
+                    duration));
+            postSave.run();
+        }
+    }
 }

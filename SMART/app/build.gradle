@@ -66,4 +66,5 @@ dependencies {
     implementation 'com.google.guava:guava:24.1-android'
     implementation 'mobi.upod:time-duration-picker:1.1.3'
     implementation 'com.android.support:support-v13:27.1.1'
+    implementation 'jp.wasabeef:blurry:2.1.1'
 }

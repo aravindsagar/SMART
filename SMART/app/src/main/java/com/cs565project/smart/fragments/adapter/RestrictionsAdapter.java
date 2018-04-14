@@ -1,4 +1,4 @@
-package com.cs565project.smart.fragments;
+package com.cs565project.smart.fragments.adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 import static android.view.View.GONE;
 
-class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapter.ViewHolder> {
+public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapter.ViewHolder> {
 
     private List<AppDetails> restrictedApps, recommendedApps, otherApps;
     private Map<String, AppInfo> appInfo;
@@ -30,7 +30,7 @@ class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapter.ViewH
 
     private OnItemSelectedListener listener;
 
-    RestrictionsAdapter(List<AppDetails> restrictedApps, List<AppDetails> recommendedApps,
+    public RestrictionsAdapter(List<AppDetails> restrictedApps, List<AppDetails> recommendedApps,
                                List<AppDetails> otherApps, Map<String, AppInfo> appInfo,
                                OnItemSelectedListener listener) {
         this.restrictedApps = restrictedApps;

@@ -9,16 +9,18 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.text.format.DateUtils;
+import android.util.Log;
 
 import com.cs565project.smart.R;
 
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static android.text.format.DateUtils.HOUR_IN_MILLIS;
 import static android.text.format.DateUtils.WEEK_IN_MILLIS;
 
 public class UsageStatsUtil {
@@ -31,11 +33,13 @@ public class UsageStatsUtil {
 
     public String getForegroundApp() {
         long time = System.currentTimeMillis();
-        List<UsageStats> appList = mUsageStatsManager
-                .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  time - 1000*100, time);
-        if (appList != null && appList.size() > 0) {
+        Collection<UsageStats> appList = mUsageStatsManager.queryAndAggregateUsageStats(time - HOUR_IN_MILLIS, time)
+                .values();
+        if (appList.size() > 0) {
             return Collections.max(appList, (a, b) -> Long.compare(a.getLastTimeUsed(), b.getLastTimeUsed())).getPackageName();
         }
+
+        Log.d("Usage stats", "Usage stats manager returned nothing");
         return null;
     }
 
@@ -50,13 +54,15 @@ public class UsageStatsUtil {
     }
 
     private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
-        List<UsageStats> appList = mUsageStatsManager
-                .queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+        List<UsageStats> appList = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+        /*DateFormat fmt = SimpleDateFormat.getInstance();
+        Log.d("startDate", fmt.format(new Date(startTime)))*/;
 
-        if (appList != null) {
+        if (appList.size() > 0) {
             Collections.sort(appList, (a,b) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
-        } else {
-            appList = new ArrayList<>();
+            /*for(UsageStats s : appList) {
+                Log.d(s.getPackageName(), fmt.format(new Date(s.getFirstTimeStamp())) + ", " + fmt.format(new Date(s.getLastTimeStamp())));
+            }*/
         }
 
         return appList;

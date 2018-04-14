@@ -16,8 +16,10 @@ import com.cs565project.smart.R;
 import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.fragments.adapter.RestrictionsAdapter;
 import com.cs565project.smart.util.AppInfo;
-import com.cs565project.smart.util.RestrictionRecommender;
+import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.recommender.RestrictionRecommender;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,16 +136,7 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onDurationConfirmed(String packageName, long duration) {
         mySwipeRefreshLayout.setRefreshing(true);
-        myExecutor.execute(() -> {
-            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
-            AppDetails appDetails = dao.getAppDetails(packageName);
-            dao.updateAppDetails(new AppDetails(
-                    appDetails.getPackageName(),
-                    appDetails.getAppName(),
-                    appDetails.getCategory(),
-                    (int) duration));
-            loadData.run();
-        });
+        myExecutor.execute(new DbUtils.SaveRestrictionToDb(getActivity(), packageName, (int) duration, loadData));
     }
 
     @Override

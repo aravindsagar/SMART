@@ -3,16 +3,13 @@ package com.cs565project.smart.fragments;
 
 import android.animation.TimeInterpolator;
 import android.annotation.SuppressLint;
-import android.content.Context;
+import android.app.Fragment;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -30,17 +27,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cs565project.smart.R;
 import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.fragments.adapter.PieLegendAdapter;
 import com.cs565project.smart.util.AppInfo;
+import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -65,7 +62,7 @@ import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayReportFragment extends Fragment implements AdapterView.OnItemClickListener, View.OnKeyListener {
+public class DayReportFragment extends Fragment implements PieLegendAdapter.OnItemClickListener, View.OnKeyListener, SetRestrictionFragment.OnDurationSelectedListener {
 
     private static final String EXTRA_DATE = "extra_date";
     private static final String EXTRA_CATEGORY = "category";
@@ -89,7 +86,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
 
     // Our state.
     private PieData myPieData, mySecondaryPieData;
-    private List<LegendInfo> myLegendInfos;
+    private List<PieLegendAdapter.LegendInfo> myLegendInfos;
     private long myTotalUsageTime;
     private Date myDate;
     private String myCurrentCategory;
@@ -115,7 +112,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
             Map<String, Long> secondaryUsageMap = new HashMap<>();
 
             // Initialize state with defaults.
-            Map<String, List<String>> additionalLegendInfo = new HashMap<>();
+            Map<String, List<String>> subtitleInfo = new HashMap<>();
             myLegendInfos = new ArrayList<>();
             myTotalUsageTime = 0;
 
@@ -124,14 +121,14 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
-                if (AppInfo.NO_CATEGORY.equals(category)) { continue; }
+                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
 
                 if (usageMap.containsKey(category)) {
                     usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
-                    additionalLegendInfo.get(category).add(appDetails.getAppName());
+                    subtitleInfo.get(category).add(appDetails.getAppName());
                 } else {
                     usageMap.put(category, appUsage.getDailyUseTime());
-                    additionalLegendInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
+                    subtitleInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
                 }
 
                 // If apps within a category are visible, we need to adjust the data accordingly.
@@ -145,7 +142,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
                 }
             }
 
-            List<PieEntry> entries = processUsageMap(usageMap, additionalLegendInfo, isInSecondaryView(), !isInSecondaryView());
+            List<PieEntry> entries = processUsageMap(usageMap, subtitleInfo, isInSecondaryView(), !isInSecondaryView());
             PieDataSet dataSet = new PieDataSet(entries, "App usage");
             dataSet.setColors(PIE_COLORS);
             dataSet.setDrawValues(false);
@@ -153,7 +150,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
 
             if (isInSecondaryView()) {
                 List<PieEntry> secondaryEntries = processUsageMap(secondaryUsageMap,
-                        additionalLegendInfo, true, true);
+                        subtitleInfo, true, true);
                 PieDataSet secondaryDataSet = new PieDataSet(secondaryEntries, "App usage");
                 secondaryDataSet.setColors(PIE_COLORS);
                 secondaryDataSet.setDrawValues(false);
@@ -164,7 +161,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
         }
 
         private List<PieEntry> processUsageMap(
-                Map<String, Long> usageMap, Map<String, List<String>> additionalLegendInfo,
+                Map<String, Long> usageMap, Map<String, List<String>> subtitleInfo,
                 boolean isSecondaryData, boolean addToLegend) {
 
             // Output list.
@@ -189,7 +186,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
                 } else {
                     // In TOTAL state, the categories are the titles, and apps in them are the subtitles.
                     title = key;
-                    subTitle = buildSubtitle(additionalLegendInfo.get(key));
+                    subTitle = buildSubtitle(subtitleInfo.get(key));
                 }
 
                 // We want to limit the number of entries in the chart.
@@ -204,7 +201,7 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
                 }
 
                 if (addToLegend) {
-                    myLegendInfos.add(new LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
+                    myLegendInfos.add(new PieLegendAdapter.LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
                 }
                 i++;
             }
@@ -212,10 +209,6 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
             return entries;
         }
     };
-
-    private boolean isInSecondaryView() {
-        return myCurrentCategory != null && !myCurrentCategory.isEmpty();
-    }
 
     // Runnable to be run in the UI thread after our state has been updated.
     private Runnable postLoadData = new Runnable() {
@@ -348,6 +341,10 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
         setPieData();
     }
 
+    private boolean isInSecondaryView() {
+        return myCurrentCategory != null && !myCurrentCategory.isEmpty();
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void setupPieAndLegendView() {
         for (PieChart pieChart : Arrays.asList(myPieChart, myPieChartSecondary)) {
@@ -385,8 +382,31 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        switchToPerCategoryView(myLegendInfos.get(position).title);
+    public void onItemClick(int position) {
+        switchToPerCategoryView(myLegendInfos.get(position).getTitle());
+    }
+
+    @Override
+    public boolean onItemLongClick(int position) {
+        if (isInSecondaryView()) {
+            PieLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
+            myExecutor.execute(()->{
+                AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+                int thresholdTime = RestrictionRecommender.recommendRestriction(
+                        dao.getAppDetails(legendInfo.getSubTitle()),
+                        dao.getAppUsage(legendInfo.getSubTitle())
+                );
+                myHandler.post(() -> {
+                    SetRestrictionFragment
+                            .newInstance(legendInfo.getTitle(), legendInfo.getSubTitle(), thresholdTime)
+                            .setListener(DayReportFragment.this)
+                            .show(getChildFragmentManager(), "SET_RESTRICTION");
+                });
+            });
+
+            return true;
+        }
+        return false;
     }
 
     private void switchToPerCategoryView(String category) {
@@ -451,107 +471,16 @@ public class DayReportFragment extends Fragment implements AdapterView.OnItemCli
         return sb.toString();
     }
 
-    private static class PieLegendAdapter extends RecyclerView.Adapter<PieLegendAdapter.ViewHolder> {
-
-        private List<LegendInfo> myLegendInfos;
-        private long myTotal;
-        private Context myContext;
-        private AdapterView.OnItemClickListener myListener;
-
-        PieLegendAdapter(List<LegendInfo> myLegendInfos, long myTotal, Context myContext,
-                                AdapterView.OnItemClickListener myListener) {
-            this.myLegendInfos = myLegendInfos;
-            this.myTotal = myTotal;
-            this.myContext = myContext;
-            this.myListener = myListener;
-        }
-
-        public void setData(List<LegendInfo> myLegendInfos, long myTotal) {
-            this.myLegendInfos = myLegendInfos;
-            this.myTotal = myTotal;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View root = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.list_item_pie_legend, parent, false);
-            return new ViewHolder(root);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            LegendInfo entry = myLegendInfos.get(position);
-
-            // Setup the background progress bar.
-            if (myTotal > 0) {
-                holder.progressBar.setProgress((int) (entry.usageTime * 100 / myTotal));
-            }
-            int color = entry.color;
-            int lighterColor = Color.argb(50, Color.red(color), Color.green(color), Color.blue(color));
-            holder.progressDrawable.setColorFilter(lighterColor, PorterDuff.Mode.MULTIPLY);
-
-            // Set the legend color box.
-            holder.legendColorBox.getDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-
-            // Set title and subtitle.
-            holder.title.setText(Html.fromHtml(entry.title));
-            holder.subtitle.setText(Html.fromHtml(entry.subTitle));
-
-            // Set app icon if available.
-            if (entry.icon != null) {
-                holder.appIcon.setImageDrawable(entry.icon);
-                holder.appIcon.setVisibility(View.VISIBLE);
-            } else {
-                holder.appIcon.setVisibility(View.GONE);
-            }
-
-            // Set duration.
-            holder.duration.setText(UsageStatsUtil.formatDuration(entry.usageTime, myContext));
-
-            holder.root.setOnClickListener(v -> myListener.onItemClick(null, v, position, position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return myLegendInfos.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-
-            View root;
-            ProgressBar progressBar;
-            Drawable progressDrawable;
-            ImageView legendColorBox, appIcon;
-            TextView title, subtitle, duration;
-
-            ViewHolder(View itemView) {
-                super(itemView);
-
-                root = itemView;
-                progressBar = itemView.findViewById(R.id.legend_progress_bar);
-                progressDrawable = ((LayerDrawable) progressBar.getProgressDrawable()).findDrawableByLayerId(android.R.id.progress);
-                legendColorBox = itemView.findViewById(R.id.legend_color_box);
-                title = itemView.findViewById(R.id.legend_title);
-                subtitle = itemView.findViewById(R.id.legend_subtitle);
-                duration = itemView.findViewById(R.id.legend_duration);
-                appIcon = itemView.findViewById(R.id.legend_app_icon);
-            }
-        }
+    @Override
+    public void onDurationConfirmed(String packageName, long duration) {
+        Runnable postSaveRunnable = () -> myHandler.post(() ->
+                Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show());
+        myExecutor.execute(new DbUtils.SaveRestrictionToDb(getActivity(), packageName, (int) duration,
+                postSaveRunnable));
     }
 
-    private static class LegendInfo {
-        String title, subTitle;
-        Drawable icon;
-        long usageTime;
-        int color;
+    @Override
+    public void onCancel() {
 
-        LegendInfo(String title, String subTitle, Drawable icon, long usageTime, int color) {
-            this.title = title;
-            this.subTitle = subTitle;
-            this.icon = icon;
-            this.usageTime = usageTime;
-            this.color = color;
-        }
     }
 }
