@@ -35,9 +35,9 @@ import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.fragments.adapter.PieLegendAdapter;
+import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
-import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -347,6 +346,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupPieAndLegendView() {
+        if (getActivity() == null) return;
         for (PieChart pieChart : Arrays.asList(myPieChart, myPieChartSecondary)) {
             pieChart.getDescription().setEnabled(false);
             pieChart.getLegend().setEnabled(false);
@@ -369,7 +369,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
-                new DividerItemDecoration(Objects.requireNonNull(getActivity()), layoutManager.getOrientation());
+                new DividerItemDecoration(getActivity(), layoutManager.getOrientation());
         myLegend.addItemDecoration(dividerItemDecoration);
         myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;

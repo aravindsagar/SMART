@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cs565project.smart.fragments.LogMoodFragment;
 import com.cs565project.smart.fragments.ReportsFragment;
 import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.service.AppMonitorService;
@@ -104,7 +105,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         private static List<Pair<Class<? extends Fragment>, String>> FRAGMENT_CLASSES = Arrays.asList(
                 new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "YOUR ACTIVITY"),
-                new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS")
+                new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS"),
+                new Pair<Class<? extends Fragment>, String>(LogMoodFragment.class, "LOG YOUR MOOD")
         );
 
         MainTabsAdapter(FragmentManager fm) {
