@@ -74,7 +74,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
             titleView.setText(newsItem.getTitle());
             sourceView.setText(newsItem.getPublisher());
-            iconView.setImageBitmap(newsItem.getIcon());
+            iconView.setImageDrawable(newsItem.getIcon());
 
             articleLayout.setOnClickListener(v -> {
                     getContext().startActivity(new Intent(Intent.ACTION_VIEW, newsItem.getUri()));
