@@ -1,19 +1,22 @@
 <!--Reports fragment contains a bar at the top to select report type and dates, and a frame below
 that which will show reports corresponding to the selections.-->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<LinearLayout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context="com.cs565project.smart.fragments.ReportsFragment">
 
     <!--Bar for choosing report params-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_horizontal"
-        android:padding="20dp">
+        android:background="#10000000"
+        android:padding="14dp"
+        android:elevation="6dp">
 
         <!--Spinner to switch between daily, weekly, trend views-->
         <android.support.v7.widget.AppCompatSpinner
@@ -21,15 +24,12 @@ that which will show reports corresponding to the selections.-->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <android.widget.Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
-
         <!--Show selected date-->
         <TextView
             android:id="@+id/date_selected_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="end|center_vertical"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"/>
         <!--Date picker-->
@@ -45,6 +45,8 @@ that which will show reports corresponding to the selections.-->
     <FrameLayout
         android:id="@+id/reports_child_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
 
 </LinearLayout>

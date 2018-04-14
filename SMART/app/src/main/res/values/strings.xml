@@ -21,4 +21,32 @@
     <string name="allow_take_picture">Capture selfies</string>
     <string name="channel_name">App usage</string>
     <string name="channel_description">Displays a summary of your app usage today</string>
+    <string name="time_in_restricted_apps">%s in restricted apps</string>
+    <string name="limit_exceeded">Usage limit exceeded in %d apps</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="zero_min">"&lt;1 min"</string>
+    <string name="duration_min">%d min</string>
+    <string name="duration_hour">%d:%02d hr</string>
+    <string name="total">total</string>
+    <string name="n_more_apps">, and %d more apps</string>
+    <string name="duration_in_category">in %s</string>
+    <string name="log_my_mood">Take a selfie!</string>
+    <string name="mood">Feeling</string>
+    <string name="others">Others</string>
+    <string name="restricted_apps">Restricted apps</string>
+    <string name="rec_restrictions">Recommended restrictions</string>
+    <string name="other_apps">Other apps</string>
+    <string name="restricted">Restricted</string>
+    <string name="recommended">Recommended</string>
+    <string name="swipe_down_for_more_options">Swipe down for more options</string>
+    <string name="usage_limit_reached">Usage limit reached: %s</string>
+    <string name="your_newsfeed">Your newsfeed</string>
+    <string name="suggested_activities">Suggested activities</string>
+    <string name="more_details">MORE DETAILS</string>
+    <string name="source_newsapi_org">Source: NewsAPI.org</string>
+    <string name="override_message">You indicated that you do not want to use %s more than %s per day. What do you want to do?</string>
+    <string name="continue_to_app">Continue to app</string>
+    <string name="go_home">Go home</string>
 </resources>

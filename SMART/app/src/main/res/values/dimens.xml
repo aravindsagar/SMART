@@ -7,4 +7,6 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
     <dimen name="settings_normal_margin">24dp</dimen>
+    <dimen name="overlay_margin">24dp</dimen>
+    <dimen name="bg_round_radius">7dp</dimen>
 </resources>

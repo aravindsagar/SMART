@@ -86,6 +86,10 @@ public abstract class OverlayBase {
         return displaymetrics.heightPixels;
     }
 
+    protected View getViewRoot() {
+        return myLayout;
+    }
+
     public Context getContext() {
         return context;
     }

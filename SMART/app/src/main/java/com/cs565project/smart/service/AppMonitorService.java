@@ -5,18 +5,31 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.usage.UsageStats;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.text.format.DateUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.view.WindowManager;
 
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
+import com.cs565project.smart.db.AppDao;
+import com.cs565project.smart.db.AppDatabase;
+import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.recommender.NewsItem;
+import com.cs565project.smart.util.AppInfo;
+import com.cs565project.smart.util.DbUtils;
 import com.cs565project.smart.util.UsageStatsUtil;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -30,6 +43,7 @@ public class AppMonitorService extends Service {
 
     private static final int CYCLE_DELAY = 200;
     private static final int DATA_UPDATE_DELAY = 60000;
+    private static final int NEWS_UPDATE_DELAY = (int) DateUtils.HOUR_IN_MILLIS;
 
     private UsageStatsUtil myUsageStatsUtil;
     private BlockOverlay myOverlay;
@@ -37,54 +51,86 @@ public class AppMonitorService extends Service {
     private String notificationTitle = "SMART is starting up";
     private String notificationText = "You day summary will appear here";
     private boolean updateNotification = false;
-    private int cycleCount = DATA_UPDATE_DELAY/CYCLE_DELAY - 1;
-    private Executor myExecutor = Executors.newSingleThreadExecutor();
-    private Handler myHandler = new Handler();
-    private Runnable myBgJobStarter = new Runnable() {
-        @Override
-        public void run() {
-            myExecutor.execute(myBgJob);
-            if (updateNotification) {
-                postNotification(notificationTitle, notificationText);
-                updateNotification = false;
-            }
-        }
-    };
+    private String myCurrentApp;
 
+    private Executor myExecutor = Executors.newFixedThreadPool(3);
+    private Handler myHandler = new Handler();
     private Runnable myBgJob = new Runnable() {
         @Override
         public void run() {
-            cycleCount++;
             String currentApp = myUsageStatsUtil.getForegroundApp();
-            // Log.d("CURRENT_APP", currentApp + "");
 
             // Adding/removing overlay should happen in the main thread.
-            if ("com.google.android.apps.messaging".equals(currentApp)) {
-                myHandler.post(myShowOverlay);
+            if (shouldBlockApp(currentApp)) {
+                if (currentApp != null && !currentApp.equals(myCurrentApp)) {
+                    AppDao dao = AppDatabase.getAppDatabase(AppMonitorService.this).appDao();
+                    AppDetails details = dao.getAppDetails(currentApp);
 
-            } else if (!"android".equals(currentApp) && myOverlay.isVisible()) {
+                    myOverlay.setApp(details, new AppInfo(currentApp, getApplicationContext()).getAppIcon());
+                    myHandler.post(myShowOverlay);
+                }
+
+            } else if (currentApp != null && !"android".equals(currentApp) && myOverlay.isVisible()) {
                 myHandler.post(myHideOverlay);
 
             }
 
-            if (cycleCount == DATA_UPDATE_DELAY/CYCLE_DELAY) {
-                cycleCount = 0;
-                Log.d("SMART", "Updating app usage data");
-                // TODO collect app usage time and update db.
-                // TODO update notification title and text.
-                notificationText = "1:20 hours in restricted apps";
-                notificationTitle = "Good job!";
-                updateNotification = true;
-            }
-            // Schedule the app check to run again after a second.
+            myCurrentApp = currentApp;
+
             if (isRunning) {
                 myHandler.postDelayed(myBgJobStarter, CYCLE_DELAY);
             }
         }
     };
+    private Runnable myBgJobStarter = new BgStarter(myBgJob);
+
+    private Runnable myUpdateDb = new Runnable() {
+        @Override
+        public void run() {
+            Log.d("SMART", "Updating app usage data");
+            List<Pair<AppDetails, UsageStats>> restrictedAppsStatus =
+                    DbUtils.updateAndGetRestrictedAppsStatus(AppMonitorService.this);
+            long timeInRestrictedApps = 0;
+            int exceededApps = 0;
+            for(Pair<AppDetails, UsageStats> appStatus : restrictedAppsStatus) {
+                timeInRestrictedApps += appStatus.second.getTotalTimeInForeground();
+                if (appStatus.second.getTotalTimeInForeground() >= appStatus.first.getThresholdTime()) {
+                    exceededApps += 1;
+                }
+            }
+
+            // Update notification title and text.
+            notificationText = String.format(Locale.getDefault(), getString(R.string.time_in_restricted_apps),
+                    UsageStatsUtil.formatDuration(timeInRestrictedApps, AppMonitorService.this));
+            notificationTitle = (exceededApps <= 0) ?
+                    "Good job!" :
+                    String.format(Locale.getDefault(), getString(R.string.limit_exceeded), exceededApps);
+            updateNotification = true;
+
+            if (isRunning) {
+                myHandler.postDelayed(myDbJobStarter, DATA_UPDATE_DELAY);
+            }
+        }
+    };
+    private Runnable myDbJobStarter = new BgStarter(myUpdateDb);
+
+    private Runnable myUpdateNews = new Runnable() {
+        @Override
+        public void run() {
+            Log.d("SMART", "Updating news");
+            myOverlay.setNewsItems(NewsItem.getRecommendedNews(AppMonitorService.this));
+
+            if (isRunning) {
+                myHandler.postDelayed(myNewsJobStarter, NEWS_UPDATE_DELAY);
+            }
+        }
+    };
+    private Runnable myNewsJobStarter = new BgStarter(myUpdateNews);
+
     private Runnable myShowOverlay = new Runnable() {
         @Override
         public void run() {
+            myOverlay.scrollToStart();
             myOverlay.execute();
         }
     };
@@ -128,7 +174,9 @@ public class AppMonitorService extends Service {
 
     private void stop() {
         isRunning = false;
-        myHandler.removeCallbacks(myBgJobStarter, null);
+        myHandler.removeCallbacks(myBgJobStarter);
+        myHandler.removeCallbacks(myDbJobStarter);
+        myHandler.removeCallbacks(myNewsJobStarter);
     }
 
     private void start() {
@@ -138,6 +186,8 @@ public class AppMonitorService extends Service {
 
         isRunning = true;
         myHandler.post(myBgJobStarter);
+        myHandler.post(myDbJobStarter);
+        myHandler.post(myNewsJobStarter);
     }
 
     private void postNotification(String title, String text){
@@ -163,6 +213,34 @@ public class AppMonitorService extends Service {
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    private boolean shouldBlockApp(String packageName) {
+        AppDao dao = AppDatabase.getAppDatabase(AppMonitorService.this).appDao();
+        AppDetails details = dao.getAppDetails(packageName);
+        DailyAppUsage appUsage = dao.getAppUsage(packageName, new Date(UsageStatsUtil.getStartOfDayMillis(new Date())));
+
+        return details != null && appUsage != null &&
+                details.getThresholdTime() > 0 && details.getThresholdTime() < appUsage.getDailyUseTime();
+
+    }
+
+    private class BgStarter implements Runnable {
+
+        private Runnable bgJob;
+
+        public BgStarter(Runnable bgJob) {
+            this.bgJob = bgJob;
+        }
+
+        @Override
+        public void run() {
+            myExecutor.execute(bgJob);
+            if (updateNotification) {
+                postNotification(notificationTitle, notificationText);
+                updateNotification = false;
+            }
         }
     }
 }
