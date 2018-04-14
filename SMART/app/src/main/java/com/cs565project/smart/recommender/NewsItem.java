@@ -62,14 +62,12 @@ public class NewsItem {
             for(int i = 0; i < Math.min(4, articleArray.length()); i++) {
                 JSONObject article = articleArray.getJSONObject(i);
                 HttpUtil.ConnectionInputStream stream = null;
+                Bitmap image = null;
                 try {
                     stream = HttpUtil.fetchUrl(article.getString("urlToImage"));
-                    results.add(new NewsItem(
-                            article.getString("title"),
-                            article.getJSONObject("source").getString("name"),
-                            BitmapFactory.decodeStream(stream.getStream()),
-                            Uri.parse(article.getString("url"))
-                    ));
+                    image = BitmapFactory.decodeStream(stream.getStream());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 } finally {
                     if (stream != null) {
                         if (stream.getStream() != null) {
@@ -80,6 +78,12 @@ public class NewsItem {
                         }
                     }
                 }
+                results.add(new NewsItem(
+                        article.getString("title"),
+                        article.getJSONObject("source").getString("name"),
+                        image,
+                        Uri.parse(article.getString("url"))
+                ));
             }
         } catch (JSONException | IOException e) {
             e.printStackTrace();

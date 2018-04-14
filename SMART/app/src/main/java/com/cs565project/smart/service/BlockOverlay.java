@@ -1,10 +1,13 @@
 package com.cs565project.smart.service;
 
+import android.Manifest;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,6 +23,7 @@ import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.recommender.NewsItem;
 import com.cs565project.smart.util.UsageStatsUtil;
 
+import java.util.Collections;
 import java.util.List;
 
 class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnClickListener {
@@ -29,6 +33,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
     private AppDetails myAppDetails;
     private Drawable myDrawable;
     private List<NewsItem> myNewsItems;
+    private Drawable myWallpaper;
 
     private int page = 0;
     private float scrollStartY = 0;
@@ -36,6 +41,12 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
     BlockOverlay(Context context, WindowManager windowManager) {
         super(context, windowManager, R.layout.block_overlay);
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            WallpaperManager wallpaperManager = WallpaperManager.getInstance(getContext());
+            myWallpaper = wallpaperManager.getDrawable();
+            myNewsItems = Collections.emptyList();
+        }
     }
 
     public void setApp(AppDetails appDetails, Drawable icon) {
@@ -49,10 +60,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
     @Override
     void setupLayout(View rootView) {
-        // TODO check for read_external_storage permission.
-        WallpaperManager wallpaperManager = WallpaperManager.getInstance(getContext());
-        rootView.setBackground(wallpaperManager.getDrawable());
-//        rootView.setBackgroundTintList(new ColorStateList());
+        rootView.setBackground(myWallpaper);
 
         // TODO populate activities.
         LayoutInflater inflater = LayoutInflater.from(getContext());
