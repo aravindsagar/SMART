@@ -23,6 +23,8 @@ import android.os.Build;
 import android.support.v4.util.SparseArrayCompat;
 import android.view.SurfaceHolder;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -242,7 +244,11 @@ class Camera1 extends CameraViewImpl {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
                     isPictureCaptureInProgress.set(false);
-                    mCallback.onPictureTaken(data);
+                    try {
+                        mCallback.onPictureTaken(data);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                     camera.cancelAutoFocus();
                     camera.startPreview();
                 }

@@ -35,6 +35,8 @@ import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
+import org.json.JSONException;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Set;
@@ -164,6 +166,8 @@ class Camera2 extends CameraViewImpl {
                     buffer.get(data);
                     mCallback.onPictureTaken(data);
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 

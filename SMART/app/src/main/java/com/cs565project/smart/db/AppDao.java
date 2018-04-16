@@ -9,6 +9,7 @@ import android.arch.persistence.room.Update;
 
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.db.entities.MoodLog;
 
 import java.util.Date;
 import java.util.List;
@@ -42,6 +43,12 @@ public interface AppDao {
     @Query("SELECT * FROM AppDetails WHERE thresholdTime > -1")
     List<AppDetails> getRestrictedAppDetails();
 
+    @Query("SELECT * FROM MoodLog WHERE dateTime = (:date)")
+    MoodLog getMoodLog(Date date);
+
+    @Query("SELECT * FROM MoodLog")
+    List<MoodLog> getAllMoodLog();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAppUsage(DailyAppUsage... appUsages);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -50,6 +57,8 @@ public interface AppDao {
     void insertAppDetails(AppDetails... apps);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAppDetails(List<AppDetails> apps);
+    @Insert
+    void insertMood(MoodLog... mood);
 
     @Update
     void updateAppDetails(AppDetails... apps);
