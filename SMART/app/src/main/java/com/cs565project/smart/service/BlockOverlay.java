@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -21,10 +22,16 @@ import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.recommender.NewsItem;
+import com.cs565project.smart.util.CameraUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
+import com.google.android.cameraview.CameraView;
+
+import org.json.JSONException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnClickListener {
     private static final int FLING_THRESHOLD = 5;
@@ -34,6 +41,10 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
     private Drawable myDrawable;
     private List<NewsItem> myNewsItems;
     private Drawable myWallpaper;
+
+    private Executor myExecutor = Executors.newSingleThreadExecutor();
+    private Handler myHandler = new Handler();
+    private CameraUtil myCameraUtil = new CameraUtil();
 
     private int page = 0;
     private float scrollStartY = 0;
@@ -108,6 +119,17 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         goHome.setOnClickListener(this);
         rootView.setOnTouchListener(this);
         detailsButton.setOnClickListener(this);
+
+        try {
+            CameraView cameraView = rootView.findViewById(R.id.overlay_camera_view);
+            if (cameraView != null) {
+                cameraView.setFacing(CameraView.FACING_FRONT);
+                cameraView.addCallback(myCameraCallback);
+                cameraView.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -195,4 +217,36 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
             getContext().startActivity(new Intent(getContext(), MainActivity.class));
         }
     }
+
+    @Override
+    public void remove() {
+        try {
+            CameraView cameraView = getViewRoot().findViewById(R.id.overlay_camera_view);
+            if (cameraView != null) {
+                cameraView.stop();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        super.remove();
+    }
+
+    CameraView.Callback myCameraCallback = new CameraView.Callback() {
+        @Override
+        public void onCameraOpened(CameraView cameraView) {
+            super.onCameraOpened(cameraView);
+            myHandler.postDelayed(cameraView::takePicture, 1000);
+        }
+
+        @Override
+        public void onCameraClosed(CameraView cameraView) {
+            super.onCameraClosed(cameraView);
+        }
+
+        @Override
+        public void onPictureTaken(CameraView cameraView, byte[] data) throws JSONException {
+            super.onPictureTaken(cameraView, data);
+            myExecutor.execute(() -> myCameraUtil.processPicture(getContext(), data));
+        }
+    };
 }

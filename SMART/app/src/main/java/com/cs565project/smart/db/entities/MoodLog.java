@@ -2,12 +2,10 @@ package com.cs565project.smart.db.entities;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 public class MoodLog {
@@ -36,7 +34,7 @@ public class MoodLog {
         /* Empty */
     }
 
-    public MoodLog(Date dateTime, ArrayList<Double> moodList) {
+    public MoodLog(Date dateTime, List<Double> moodList) {
         this.dateTime   = dateTime;
         happy_value     = moodList.get(0);
         sad_value       = moodList.get(1);
