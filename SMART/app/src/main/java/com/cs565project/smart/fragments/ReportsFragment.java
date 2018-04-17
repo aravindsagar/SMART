@@ -172,6 +172,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.date_picker_button:
+                if (myStartDate == null) return;
                 DatePickerFragment datePickerFragment =
                         DatePickerFragment.getInstance(
                                 REPORT_TYPES.get(myCurrentSpinnerItem).selectRange,

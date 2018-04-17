@@ -30,6 +30,11 @@
                 android:textColor="@android:color/white"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="14dp"/>
+            <com.google.android.cameraview.CameraView
+                android:id="@+id/overlay_camera_view"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="40dp"/>
         </LinearLayout>
         <TextView
             android:id="@+id/usage_limit"

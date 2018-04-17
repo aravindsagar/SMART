@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "050be5471b78b415db9b2b7ad64e7dcd",
+    "identityHash": "7226a615beac58956a2786d8aeb7378b",
     "entities": [
       {
         "tableName": "DailyAppUsage",
@@ -92,11 +92,55 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "MoodLog",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateTime` INTEGER, `happiness` REAL NOT NULL, `sadness` REAL NOT NULL, `neutral` REAL NOT NULL, `anger` REAL NOT NULL, PRIMARY KEY(`dateTime`))",
+        "fields": [
+          {
+            "fieldPath": "dateTime",
+            "columnName": "dateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "happy_value",
+            "columnName": "happiness",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sad_value",
+            "columnName": "sadness",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "neutral_value",
+            "columnName": "neutral",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "anger_value",
+            "columnName": "anger",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "dateTime"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"050be5471b78b415db9b2b7ad64e7dcd\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"7226a615beac58956a2786d8aeb7378b\")"
     ]
   }
 }

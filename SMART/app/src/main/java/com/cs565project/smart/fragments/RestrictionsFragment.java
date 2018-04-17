@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,7 @@ import java.util.concurrent.Executors;
  * A simple {@link Fragment} subclass.
  */
 public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
-        RestrictionsAdapter.OnItemSelectedListener, SetRestrictionFragment.OnDurationSelectedListener {
+        RestrictionsAdapter.OnItemSelectedListener, SetRestrictionFragment.OnDurationSelectedListener, View.OnKeyListener {
 
     // Views that we care about.
     private RecyclerView myAppList;
@@ -108,6 +109,7 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_restrictions, container, false);
+        rootView.setOnKeyListener(this);
         myAppList = rootView.findViewById(R.id.list_restriction_apps);
         myAppList.setLayoutManager(new LinearLayoutManager(getActivity()));
         mySwipeRefreshLayout = rootView.findViewById(R.id.refresh_restrictions);
@@ -142,5 +144,10 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onCancel() {
 
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return false;
     }
 }

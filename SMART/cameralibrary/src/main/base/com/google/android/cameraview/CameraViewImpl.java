@@ -18,6 +18,8 @@ package com.google.android.cameraview;
 
 import android.view.View;
 
+import org.json.JSONException;
+
 import java.util.Set;
 
 abstract class CameraViewImpl {
@@ -75,7 +77,7 @@ abstract class CameraViewImpl {
 
         void onCameraClosed();
 
-        void onPictureTaken(byte[] data);
+        void onPictureTaken(byte[] data) throws JSONException;
 
     }
 

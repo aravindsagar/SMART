@@ -50,4 +50,11 @@
     <string name="continue_to_app">Continue to app</string>
     <string name="go_home">Go home</string>
     <string name="set_restriction_title">Restrict %s everyday after</string>
+    <string name="take_photo">Take photo</string>
+    <string name="enter_manually">Enter manually</string>
+    <string name="emotion_level_5">😀</string>
+    <string name="emotion_level_4">😊</string>
+    <string name="emotion_level_3">😐</string>
+    <string name="emotion_level_2">😕</string>
+    <string name="emotion_level_1">☹️</string>
 </resources>

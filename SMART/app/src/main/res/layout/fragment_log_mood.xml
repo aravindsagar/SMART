@@ -3,12 +3,80 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.LogMoodFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <com.google.android.cameraview.CameraView
-        android:id="@+id/camera_view"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+        <RadioGroup
+            android:id="@+id/radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_margin="14dp">
+            <RadioButton
+                android:id="@+id/take_photo_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/take_photo"
+                android:layout_marginEnd="8dp"/>
+            <RadioButton
+                android:id="@+id/enter_manual_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/enter_manually"/>
+        </RadioGroup>
+        <com.google.android.cameraview.CameraView
+            android:id="@+id/camera_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/radio_group"/>
+        <RadioGroup
+            android:id="@+id/mood_level_radios"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="72dp"
+            android:layout_below="@id/radio_group"
+            android:visibility="gone"
+            android:orientation="vertical">
+            <RadioButton
+                android:id="@+id/mood_5"
+                android:text="@string/emotion_level_5"
+                style="@style/EmotionRadioButton"/>
+            <RadioButton
+                android:id="@+id/mood_4"
+                style="@style/EmotionRadioButton"
+                android:text="@string/emotion_level_4"/>
+            <RadioButton
+                android:id="@+id/mood_3"
+                style="@style/EmotionRadioButton"
+                android:text="@string/emotion_level_3"/>
+            <RadioButton
+                android:id="@+id/mood_2"
+                style="@style/EmotionRadioButton"
+                android:text="@string/emotion_level_2"/>
+            <RadioButton
+                android:id="@+id/mood_1"
+                style="@style/EmotionRadioButton"
+                android:text="@string/emotion_level_1"/>
+        </RadioGroup>
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/take_pic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_camera_black_24dp"
+            android:elevation="12dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="72dp"/>
+    </RelativeLayout>
 
 </FrameLayout>
