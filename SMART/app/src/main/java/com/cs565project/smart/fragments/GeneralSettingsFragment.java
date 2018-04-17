@@ -2,6 +2,7 @@ package com.cs565project.smart.fragments;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.cs565project.smart.R;
 import com.cs565project.smart.util.PreferencesHelper.SeekbarPreference;
@@ -68,6 +70,12 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         myRootView = inflater.inflate(R.layout.fragment_general_settings, container, false);
+
+        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String users_email = sharedPref.getString("user_email", "Not Registered");
+
+        TextView T = myRootView.findViewById(R.id.settingsEmail);
+        T.setText(users_email);
 
         for (SwitchPreference p: SWITCH_PREFERENCES) {
             p.setViewValueFromSavedPreference(myRootView, getContext());
