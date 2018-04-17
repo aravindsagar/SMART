@@ -34,7 +34,7 @@ import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
-import com.cs565project.smart.fragments.adapter.PieLegendAdapter;
+import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
@@ -61,7 +61,7 @@ import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayReportFragment extends Fragment implements PieLegendAdapter.OnItemClickListener, View.OnKeyListener, SetRestrictionFragment.OnDurationSelectedListener {
+public class DayReportFragment extends Fragment implements ChartLegendAdapter.OnItemClickListener, View.OnKeyListener, SetRestrictionFragment.OnDurationSelectedListener {
 
     private static final String EXTRA_DATE = "extra_date";
     private static final String EXTRA_CATEGORY = "category";
@@ -69,7 +69,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
     private static final float PIE_HOLE_RADIUS = 80f;
     private static final float PIE_SCALE_FACTOR = 0.3f;
 
-    private static final int[] PIE_COLORS = {
+    public static final int[] PIE_COLORS = {
             rgb("#bf360c"), rgb("#006064"), rgb("#5d4037"), rgb("#827717"),
             rgb("#f57f17"), rgb("#37474f"), rgb("#4a148c"), rgb("#ad1457"),
             rgb("#006064"), rgb("#0d47a1"), rgb("#fdd835"), rgb("#ff1744"),
@@ -85,7 +85,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
 
     // Our state.
     private PieData myPieData, mySecondaryPieData;
-    private List<PieLegendAdapter.LegendInfo> myLegendInfos;
+    private List<ChartLegendAdapter.LegendInfo> myLegendInfos;
     private long myTotalUsageTime;
     private Date myDate;
     private String myCurrentCategory;
@@ -200,7 +200,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
                 }
 
                 if (addToLegend) {
-                    myLegendInfos.add(new PieLegendAdapter.LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
+                    myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
                 }
                 i++;
             }
@@ -250,9 +250,9 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
             myPieChartSecondary.invalidate();
 
             // Update the chart legend.
-            PieLegendAdapter adapter = (PieLegendAdapter) myLegend.getAdapter();
+            ChartLegendAdapter adapter = (ChartLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new PieLegendAdapter(myLegendInfos, myTotalUsageTime, getActivity(), DayReportFragment.this);
+                adapter = new ChartLegendAdapter(myLegendInfos, myTotalUsageTime, getActivity(), DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
                 adapter.setData(myLegendInfos, myTotalUsageTime);
@@ -292,7 +292,6 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
         myRefreshLayout = myRootView.findViewById(R.id.swipe_refresh);
         myPieChart = myRootView.findViewById(R.id.pie_chart);
         myPieChartSecondary = myRootView.findViewById(R.id.pie_chart_secondary);
-        myPieChartSecondary.setData(new PieData(new PieDataSet(Collections.singletonList(new PieEntry(10, "Test")), "test")));
         myLegend = myRootView.findViewById(R.id.pie_categories_list);
 
         // Listen for layout completion, so that we can start animations.
@@ -389,7 +388,7 @@ public class DayReportFragment extends Fragment implements PieLegendAdapter.OnIt
     @Override
     public boolean onItemLongClick(int position) {
         if (isInSecondaryView()) {
-            PieLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
+            ChartLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
             myExecutor.execute(()->{
                 AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
                 int thresholdTime = RestrictionRecommender.recommendRestriction(

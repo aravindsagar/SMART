@@ -102,7 +102,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if (getContext() == null) {
+        if (getActivity() == null) {
             throw new IllegalStateException("null context inside fragement; cannot continue.");
         }
 
@@ -180,9 +180,6 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
                         ).setListener(ReportsFragment.this);
                 datePickerFragment.show(getChildFragmentManager(), FRAGMENT_DAY_TAG);
                 break;
-            /*case R.id.button_log_mood:
-                // TODO start activity to log mood.
-                break;*/
         }
     }
 
@@ -208,10 +205,20 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         // want to enforce this category when user selects a different date, so unset the category.
         String category = myDayReportCategory;
         myDayReportCategory = "";
-        getChildFragmentManager().beginTransaction().replace(
-                R.id.reports_child_frame,
-                DayReportFragment.getInstance(selectedDates.get(0).getTime(), category)
-        ).commit();
+
+        // TODO make this more generic
+        if (myCurrentSpinnerItem == 0) {
+            getChildFragmentManager().beginTransaction().replace(
+                    R.id.reports_child_frame,
+                    DayReportFragment.getInstance(mySingleSelectionDate.getTime(), category)
+            ).commit();
+        } else if (myCurrentSpinnerItem == 1) {
+            getChildFragmentManager().beginTransaction().replace(
+                    R.id.reports_child_frame,
+                    AggregateReportFragment.getInstance(myRangeSelectionStartDate.getTime(),
+                            myRangeSelectionEndDate.getTime(), category, null)
+            ).commit();
+        }
     }
 
     @Override

@@ -20,15 +20,15 @@ import com.cs565project.smart.util.UsageStatsUtil;
 
 import java.util.List;
 
-public class PieLegendAdapter extends RecyclerView.Adapter<PieLegendAdapter.ViewHolder> {
+public class ChartLegendAdapter extends RecyclerView.Adapter<ChartLegendAdapter.ViewHolder> {
 
     private List<LegendInfo> myLegendInfos;
     private long myTotal;
     private Context myContext;
     private OnItemClickListener myListener;
 
-    public PieLegendAdapter(List<LegendInfo> myLegendInfos, long myTotal, Context myContext,
-                            OnItemClickListener myListener) {
+    public ChartLegendAdapter(List<LegendInfo> myLegendInfos, long myTotal, Context myContext,
+                              OnItemClickListener myListener) {
         this.myLegendInfos = myLegendInfos;
         this.myTotal = myTotal;
         this.myContext = myContext;
