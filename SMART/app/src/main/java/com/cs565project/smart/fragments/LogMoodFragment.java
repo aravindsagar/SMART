@@ -1,40 +1,91 @@
 package com.cs565project.smart.fragments;
 
 
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.app.Fragment;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioGroup;
 
 import com.cs565project.smart.R;
+import com.cs565project.smart.util.CameraUtil;
 import com.google.android.cameraview.CameraView;
+
+import java.util.Arrays;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class LogMoodFragment extends Fragment {
+public class LogMoodFragment extends Fragment implements View.OnKeyListener, RadioGroup.OnCheckedChangeListener {
 
-    private CameraView myCameraView;
+//    private static final int REQUEST_CAMERA_PERMISSION = 1;
+    private static final String TAG = "CameraView";
+
+
+    private Handler     myBackgroundHandler;
+    private CameraView  myCameraView;
+    private RadioGroup  myMoodRadios;
+
+    private CameraUtil  myCameraUtil;
 
     public LogMoodFragment() {
         // Required empty public constructor
     }
 
+    private View.OnClickListener myOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == R.id.take_pic) {
+                // Record mood according to user's selection.
+                if (myCameraView.getVisibility() == View.VISIBLE) {
+                    myCameraView.takePicture();
+                } else if (myMoodRadios.getVisibility() == View.VISIBLE && myMoodRadios.getCheckedRadioButtonId() != -1) {
+                    int radioBtnIdx = myMoodRadios.indexOfChild(
+                            myMoodRadios.findViewById(myMoodRadios.getCheckedRadioButtonId()));
+                    double moodLevel = (4 - radioBtnIdx) / 4.0;
+                    getBackgroundHandler().post(() ->
+                            myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0, 0.0)));
+                }
+            }
+        }
+    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_log_mood, container, false);
+        root.setOnKeyListener(this);
+
+        myCameraUtil = new CameraUtil();
+
         myCameraView = root.findViewById(R.id.camera_view);
+        myCameraView.setFacing(CameraView.FACING_FRONT);
+        myCameraView.addCallback(onCallback);
+
+        FloatingActionButton takePic = root.findViewById(R.id.take_pic);
+        takePic.setOnClickListener(myOnClickListener);
+
+        RadioGroup inputTypeGroup = root.findViewById(R.id.radio_group);
+        myMoodRadios = root.findViewById(R.id.mood_level_radios);
+        inputTypeGroup.setOnCheckedChangeListener(this);
+        inputTypeGroup.check(R.id.take_photo_radio);
         return root;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+//        FragmentCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+//                    REQUEST_CAMERA_PERMISSION);
         myCameraView.start();
     }
 
@@ -42,5 +93,50 @@ public class LogMoodFragment extends Fragment {
     public void onPause() {
         super.onPause();
         myCameraView.stop();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (myBackgroundHandler != null) {
+            myBackgroundHandler.getLooper().quitSafely();
+            myBackgroundHandler = null;
+        }
+    }
+
+    private Handler getBackgroundHandler() {
+        if (myBackgroundHandler == null) {
+            HandlerThread thread = new HandlerThread("background");
+            thread.start();
+            myBackgroundHandler = new Handler(thread.getLooper());
+        }
+        return myBackgroundHandler;
+    }
+
+    // FIXME
+    private CameraView.Callback onCallback = new CameraView.Callback() {
+
+        @Override
+        public void onPictureTaken(CameraView cameraView, final byte[] data) {
+
+            Log.d(TAG, "onPictureTaken " + data.length);
+
+            getBackgroundHandler().post(() -> myCameraUtil.processPicture(getActivity(), data));
+
+            // Main thread idle now
+        }
+    };
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup group, int checkedId) {
+        if (group.getId() == R.id.radio_group) {
+            myCameraView.setVisibility(checkedId == R.id.take_photo_radio ? View.VISIBLE : View.GONE);
+            myMoodRadios.setVisibility(checkedId == R.id.enter_manual_radio ? View.VISIBLE : View.GONE);
+        }
     }
 }
