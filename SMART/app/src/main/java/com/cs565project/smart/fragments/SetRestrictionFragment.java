@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import com.cs565project.smart.R;
+
 import mobi.upod.timedurationpicker.TimeDurationPicker;
 import mobi.upod.timedurationpicker.TimeDurationPickerDialogFragment;
 
@@ -58,7 +60,7 @@ public class SetRestrictionFragment extends TimeDurationPickerDialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-        dialog.setTitle(String.format("Set daily allowed duration for %s", myAppName));
+        dialog.setTitle(String.format(getString(R.string.set_restriction_title), myAppName));
         return dialog;
     }
 

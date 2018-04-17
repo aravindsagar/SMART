@@ -1,10 +1,12 @@
 package com.cs565project.smart.recommender;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 
+import com.cs565project.smart.R;
 import com.cs565project.smart.util.HttpUtil;
 
 import org.json.JSONArray;
@@ -23,10 +25,10 @@ public class NewsItem {
 
     private String title;
     private String publisher;
-    private Bitmap icon;
+    private Drawable icon;
     private Uri uri;
 
-    public NewsItem(String title, String publisher, Bitmap icon, Uri uri) {
+    public NewsItem(String title, String publisher, Drawable icon, Uri uri) {
         this.title = title;
         this.publisher = publisher;
         this.icon = icon;
@@ -41,7 +43,7 @@ public class NewsItem {
         return publisher;
     }
 
-    public Bitmap getIcon() {
+    public Drawable getIcon() {
         return icon;
     }
 
@@ -62,12 +64,13 @@ public class NewsItem {
             for(int i = 0; i < Math.min(4, articleArray.length()); i++) {
                 JSONObject article = articleArray.getJSONObject(i);
                 HttpUtil.ConnectionInputStream stream = null;
-                Bitmap image = null;
+                Drawable image = null;
                 try {
                     stream = HttpUtil.fetchUrl(article.getString("urlToImage"));
-                    image = BitmapFactory.decodeStream(stream.getStream());
+                    image = new BitmapDrawable(context.getResources(), BitmapFactory.decodeStream(stream.getStream()));
                 } catch (IOException e) {
                     e.printStackTrace();
+                    image = context.getDrawable(R.drawable.ic_public_black_24dp);
                 } finally {
                     if (stream != null) {
                         if (stream.getStream() != null) {

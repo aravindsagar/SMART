@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.DayReportFragment"
+    android:id="@+id/swipe_refresh">
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true">
+            <com.github.mikephil.charting.charts.CombinedChart
+                android:id="@+id/bar_chart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_margin="12dp"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#afafaf"/>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/legend"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+</android.support.v4.widget.SwipeRefreshLayout>

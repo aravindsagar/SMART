@@ -78,7 +78,6 @@
             android:orientation="vertical"
             android:layout_marginStart="@dimen/overlay_margin"
             android:layout_marginEnd="@dimen/overlay_margin"
-            android:paddingTop="8dp"
             android:background="@drawable/rounded_rect_bg_top"/>
         <TextView
             android:text="@string/source_newsapi_org"
@@ -87,6 +86,7 @@
             android:gravity="end"
             android:layout_marginBottom="12dp"
             android:paddingBottom="8dp"
+            android:paddingTop="8dp"
             android:layout_marginStart="@dimen/overlay_margin"
             android:layout_marginEnd="@dimen/overlay_margin"
             android:paddingEnd="12dp"
