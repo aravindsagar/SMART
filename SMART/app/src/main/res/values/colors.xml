@@ -9,4 +9,9 @@
     <color name="primaryTextColor">#ffffff</color>
     <color name="secondaryTextColor">#ffffff</color>
     <color name="separator">#aa000000</color>
+
+    <color name="Onboarding1">#0097A7</color>
+    <color name="Onboarding2">#e35183</color>
+    <color name="Onboarding3">#43A047</color>
+
 </resources>

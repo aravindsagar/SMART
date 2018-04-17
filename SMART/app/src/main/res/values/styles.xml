@@ -51,6 +51,33 @@
         <item name="android:layout_marginTop">14dp</item>
     </style>
 
+    <style name="AccountEditInputStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:ems">10</item>
+        <item name="android:textColorHint">@color/primaryTextColor</item>
+        <item name="android:layout_marginBottom">30dp</item>
+    </style>
+
+    <style name="OnboardingButtonStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textColor">@color/primaryTextColor</item>
+        <item name="android:paddingLeft">15dp</item>
+        <item name="android:paddingRight">15dp</item>
+        <item name="android:textSize">15dp</item>
+        <item name="android:background">@color/colorPrimary</item>
+    </style>
+
+    <style name="OnboardingTextViewStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textColor">@color/primaryTextColor</item>
+        <item name="android:textSize">17dp</item>
+        <item name="android:layout_marginLeft">15dp</item>
+        <item name="android:layout_marginRight">15dp</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />

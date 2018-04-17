@@ -60,4 +60,6 @@ dependencies {
     testImplementation "android.arch.persistence.room:testing:1.0.0"
 
     implementation 'com.google.guava:guava:24.1-android'
+
+    implementation 'com.github.apl-devs:appintro:v4.2.3'
 }

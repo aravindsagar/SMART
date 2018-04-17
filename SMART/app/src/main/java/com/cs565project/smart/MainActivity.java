@@ -1,7 +1,9 @@
 package com.cs565project.smart;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 import com.cs565project.smart.fragments.ReportsFragment;
 import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.service.AppMonitorService;
+import com.cs565project.smart.util.PreferencesHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,11 +32,42 @@ import java.util.List;
  * {@link MainTabsAdapter}.
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final String KEY_FIRST_START = "firstStart";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //  Declare a new thread to do a preference check
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
+
+                //  Create a new boolean and preference and set it to true
+                boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
+
+                //  If the activity has never started before...
+                if (isFirstStart) {
+
+                    //  Launch app intro
+                    final Intent i = new Intent(MainActivity.this, IntroActivity.class);
+
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            startActivity(i);
+                        }
+                    });
+
+                    //  Edit preference to make it false because we don't want this to run again
+//                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, false);
+                }
+            }
+        });
+
+        // Start the thread
+        t.start();
 
         setUpNavigation();
 
