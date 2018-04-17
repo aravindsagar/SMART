@@ -8,14 +8,20 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.text.format.DateUtils;
 import android.util.Log;
 
+import com.cs565project.smart.R;
+
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TimeZone;
-import java.util.TreeMap;
+import java.util.Locale;
+
+import static android.text.format.DateUtils.HOUR_IN_MILLIS;
+import static android.text.format.DateUtils.WEEK_IN_MILLIS;
 
 public class UsageStatsUtil {
 
@@ -27,44 +33,59 @@ public class UsageStatsUtil {
 
     public String getForegroundApp() {
         long time = System.currentTimeMillis();
-        List<UsageStats> appList = mUsageStatsManager
-                .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  time - 1000*100, time);
-        if (appList != null && appList.size() > 0) {
-            SortedMap<Long, UsageStats> mySortedMap = new TreeMap<>();
-            for (UsageStats usageStats : appList) {
-                mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
-            }
-            if (!mySortedMap.isEmpty()) {
-                 return mySortedMap.get(mySortedMap.lastKey()).getPackageName();
-            }
+        Collection<UsageStats> appList = mUsageStatsManager.queryAndAggregateUsageStats(time - HOUR_IN_MILLIS, time)
+                .values();
+        if (appList.size() > 0) {
+            return Collections.max(appList, (a, b) -> Long.compare(a.getLastTimeUsed(), b.getLastTimeUsed())).getPackageName();
         }
+
+        Log.d("Usage stats", "Usage stats manager returned nothing");
         return null;
     }
 
-    public SortedMap<Long, UsageStats> getMostUsedAppsLastWeek() {
+    public List<UsageStats> getMostUsedAppsLastWeek() {
         long time = System.currentTimeMillis();
-        return getMostUsedApps(time - 7*24*60*60*3600, time);
+        return getMostUsedApps(time - WEEK_IN_MILLIS, time);
     }
 
-    public SortedMap<Long, UsageStats> getMostUsedAppsToday() {
+    public List<UsageStats> getMostUsedAppsToday() {
+        Date today = new Date();
+        return getMostUsedApps(getStartOfDayMillis(today), today.getTime());
+    }
+
+    private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
+        List<UsageStats> appList = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+        /*DateFormat fmt = SimpleDateFormat.getInstance();
+        Log.d("startDate", fmt.format(new Date(startTime)))*/;
+
+        if (appList.size() > 0) {
+            Collections.sort(appList, (a,b) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
+            /*for(UsageStats s : appList) {
+                Log.d(s.getPackageName(), fmt.format(new Date(s.getFirstTimeStamp())) + ", " + fmt.format(new Date(s.getLastTimeStamp())));
+            }*/
+        }
+
+        return appList;
+    }
+
+    public static long getStartOfDayMillis(Date date) {
         Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        return getMostUsedApps(cal.getTimeInMillis(), System.currentTimeMillis());
+        return cal.getTimeInMillis();
     }
 
-    private SortedMap<Long, UsageStats> getMostUsedApps(long startTime, long endTime) {
-        List<UsageStats> appList = mUsageStatsManager
-                .queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  startTime, endTime);
-        SortedMap<Long, UsageStats> sortedMap = new TreeMap<>();
-        if (appList != null) {
-            for (UsageStats s : appList) {
-                sortedMap.put(s.getTotalTimeInForeground(), s);
-            }
-        }
-        return sortedMap;
+    public static long getTomorrowMillis() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -80,6 +101,17 @@ public class UsageStatsUtil {
 
         } catch (PackageManager.NameNotFoundException e) {
             return false;
+        }
+    }
+
+    public static String formatDuration(long timeInMillis, Context context) {
+        long totalTimeMins = timeInMillis / DateUtils.MINUTE_IN_MILLIS;
+        if (totalTimeMins < 1) {
+            return  context.getString(R.string.zero_min);
+        } else if (totalTimeMins < 60) {
+            return String.format(Locale.getDefault(), context.getString(R.string.duration_min), totalTimeMins);
+        } else {
+            return String.format(Locale.getDefault(), context.getString(R.string.duration_hour), totalTimeMins / 60, totalTimeMins % 60);
         }
     }
 }

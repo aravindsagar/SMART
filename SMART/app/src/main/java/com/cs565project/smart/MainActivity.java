@@ -1,13 +1,14 @@
 package com.cs565project.smart;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cs565project.smart.fragments.LogMoodFragment;
 import com.cs565project.smart.fragments.ReportsFragment;
 import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.service.AppMonitorService;
@@ -33,6 +35,8 @@ import java.util.List;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String KEY_FIRST_START = "firstStart";
+
+    private DrawerLayout myDrawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Setup the tabs.
         TabLayout tabs = findViewById(R.id.tabs);
         ViewPager pager = findViewById(R.id.main_viewpager);
-        MainTabsAdapter adapter = new MainTabsAdapter(getSupportFragmentManager());
+        MainTabsAdapter adapter = new MainTabsAdapter(getFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
 
@@ -89,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // First we set our toolbar and add toggle button for nav drawer.
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout myDrawer = findViewById(R.id.drawer_layout);
+        myDrawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, myDrawer, toolbar, R.string.app_name, R.string.app_name);
         myDrawer.addDrawerListener(toggle);
@@ -110,14 +114,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.logout:
                 Toast.makeText(this, "Logging out", Toast.LENGTH_SHORT).show();
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
             case R.id.settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
             case R.id.toggle_service:
                 startService(new Intent(this, AppMonitorService.class)
                         .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
         }
     }
@@ -131,8 +138,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static class MainTabsAdapter extends FragmentPagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> FRAGMENT_CLASSES = Arrays.asList(
-                new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "ACTIVITY REPORTS"),
-                new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS")
+                new Pair<Class<? extends Fragment>, String>(ReportsFragment.class, "YOUR ACTIVITY"),
+                new Pair<Class<? extends Fragment>, String>(RestrictionsFragment.class, "RESTRICTIONS"),
+                new Pair<Class<? extends Fragment>, String>(LogMoodFragment.class, "LOG YOUR MOOD")
         );
 
         MainTabsAdapter(FragmentManager fm) {
@@ -156,6 +164,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public CharSequence getPageTitle(int position) {
             return FRAGMENT_CLASSES.get(position).second;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (myDrawer.isDrawerOpen(GravityCompat.START)) {
+            myDrawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }

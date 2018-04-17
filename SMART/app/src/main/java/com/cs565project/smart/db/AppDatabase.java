@@ -8,8 +8,9 @@ import android.content.Context;
 
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.db.entities.MoodLog;
 
-@Database(entities = {DailyAppUsage.class, AppDetails.class}, version = 1)
+@Database(entities = {DailyAppUsage.class, AppDetails.class, MoodLog.class}, version = 1)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase{
     private static AppDatabase ourInstance;
@@ -21,6 +22,6 @@ public abstract class AppDatabase extends RoomDatabase{
         return ourInstance;
     }
 
-    public abstract AppDao userAppDao();
+    public abstract AppDao appDao();
 
 }

@@ -14,10 +14,13 @@ public class AppDetails {
     private String appName;
     private String category;
 
-    public AppDetails(@NonNull String packageName, String appName, String category) {
+    private int thresholdTime;
+
+    public AppDetails(@NonNull String packageName, String appName, String category, int thresholdTime) {
         this.packageName = packageName;
         this.appName = appName;
         this.category = category;
+        this.thresholdTime = thresholdTime;
     }
 
     @NonNull
@@ -31,5 +34,9 @@ public class AppDetails {
 
     public String getCategory() {
         return category;
+    }
+
+    public int getThresholdTime() {
+        return thresholdTime;
     }
 }

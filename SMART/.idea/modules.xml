@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SMART.iml" filepath="$PROJECT_DIR$/SMART.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$USER_HOME$/Google Drive/UIUC/CS565_HCI/SMART/SMART/cameralibrary/cameralibrary.iml" filepath="$USER_HOME$/Google Drive/UIUC/CS565_HCI/SMART/SMART/cameralibrary/cameralibrary.iml" />
     </modules>
   </component>
 </project>

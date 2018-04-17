@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b4d38fd509472f42ded10f502c819a82",
+    "identityHash": "7226a615beac58956a2786d8aeb7378b",
     "entities": [
       {
         "tableName": "DailyAppUsage",
@@ -57,7 +57,7 @@
       },
       {
         "tableName": "AppDetails",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT, `category` TEXT, PRIMARY KEY(`packageName`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT, `category` TEXT, `thresholdTime` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -76,6 +76,12 @@
             "columnName": "category",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "thresholdTime",
+            "columnName": "thresholdTime",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -86,11 +92,55 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "MoodLog",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateTime` INTEGER, `happiness` REAL NOT NULL, `sadness` REAL NOT NULL, `neutral` REAL NOT NULL, `anger` REAL NOT NULL, PRIMARY KEY(`dateTime`))",
+        "fields": [
+          {
+            "fieldPath": "dateTime",
+            "columnName": "dateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "happy_value",
+            "columnName": "happiness",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sad_value",
+            "columnName": "sadness",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "neutral_value",
+            "columnName": "neutral",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "anger_value",
+            "columnName": "anger",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "dateTime"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b4d38fd509472f42ded10f502c819a82\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"7226a615beac58956a2786d8aeb7378b\")"
     ]
   }
 }
