@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    tools:context=".fragments.AccountFragment"
+    android:background="@color/Onboarding2">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:text="Create a new SMART Account"
+        android:layout_marginBottom="30dp"
+        style="@style/OnboardingTextViewStyle"
+        />
+
+    <EditText
+        android:id="@+id/user_email"
+        style="@style/AccountEditInputStyle"
+        android:hint="Email"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/user_password"
+        style="@style/AccountEditInputStyle"
+        android:hint="Password"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:id="@+id/user_confirm_password"
+        android:hint="Confirm Password"
+        android:inputType="textPassword"
+        style="@style/AccountEditInputStyle"
+        />
+
+    <Button
+        android:id="@+id/signUp"
+        style="@style/OnboardingButtonStyle"
+        android:layout_marginBottom="125dp"
+        android:text="Sign Up" />
+
+</LinearLayout>
