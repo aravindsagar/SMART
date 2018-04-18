@@ -58,7 +58,7 @@ public class CameraUtil {
 
         // Steps to connect to image analysis API's. Currently not connected/merged
         // facial feature characteristics scores are received in JSONArray
-        JSONArray recvScores = new JSONArray("[{'scores':[" + Math.random() + ", 0, 0, 0, 0]}]");
+        JSONArray recvScores = new JSONArray("[{'scores':[" + Math.random() + ", 0, 0, 0]}]");
 
         ArrayList<Double> featureScores = new ArrayList<Double>();
 
@@ -74,8 +74,21 @@ public class CameraUtil {
     }
 
     public void insertMoodLog(Context context, List<Double> moodData) {
-        MoodLog ml = new MoodLog(new Date(), moodData);
         AppDao dao = AppDatabase.getAppDatabase(context.getApplicationContext()).appDao();
+        Date now = new Date();
+        long startOfDay = UsageStatsUtil.getStartOfDayMillis(now);
+        MoodLog existingLog = dao.getMoodLog(new Date(startOfDay), now);
+
+        if (existingLog != null) {
+            long logTimeDelta = now.getTime() - existingLog.dateTime.getTime();
+            long existingWeight = existingLog.dateTime.getTime() + logTimeDelta / 2 - startOfDay;
+            long newWeight = logTimeDelta / 2;
+            for (int i = 0; i < moodData.size(); i++) {
+                moodData.set(i, (existingLog.getValByIndex(i) * existingWeight + moodData.get(i) * newWeight) /
+                        (existingWeight + newWeight));
+            }
+        }
+        MoodLog ml = new MoodLog(now, moodData);
         dao.insertMood(ml);
 
         myUIHandler.post(() -> Toast.makeText(context, "Mood saved", Toast.LENGTH_SHORT).show());

@@ -4,9 +4,7 @@
     android:id="@+id/refresh_restrictions"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cs565project.smart.fragments.RestrictionsFragment"
-    android:background="@color/Onboarding3"
-    >
+    tools:context="com.cs565project.smart.fragments.RestrictionsFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_restriction_apps"

@@ -120,7 +120,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
-                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
+//                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
 
                 if (usageMap.containsKey(category)) {
                     usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
@@ -141,6 +141,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 }
             }
 
+            if (getActivity() == null) return;
             List<PieEntry> entries = processUsageMap(usageMap, subtitleInfo, isInSecondaryView(), !isInSecondaryView());
             PieDataSet dataSet = new PieDataSet(entries, "App usage");
             dataSet.setColors(PIE_COLORS);

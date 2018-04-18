@@ -140,7 +140,8 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
             int radioBtnIdx = myMoodRadios.indexOfChild(myMoodRadios.findViewById(checkedId));
             double moodLevel = (4 - radioBtnIdx) / 4.0;
             getBackgroundHandler().post(() ->
-                    myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0, 0.0)));
+                    myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0)));
+            myMoodRadios.clearCheck();
             switchToActivityTab();
         }
     }

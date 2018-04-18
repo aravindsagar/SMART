@@ -42,6 +42,20 @@ public class MoodLog {
         anger_value     = moodList.get(3);
     }
 
+    public double getValByIndex(int index) {
+        switch (index) {
+            case 0:
+                return happy_value;
+            case 1:
+                return sad_value;
+            case 2:
+                return neutral_value;
+            case 3:
+                return anger_value;
+            default:
+                throw new IllegalArgumentException("Invalid index " + index);
+        }
+    }
     /*
     public Date getDate() { return dateTime; }
     public void setDate(Date dateTime) { this.dateTime = dateTime; }

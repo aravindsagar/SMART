@@ -3,9 +3,7 @@ package com.cs565project.smart;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
@@ -179,9 +177,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void switchToTab(int index) {
         TabLayout tabLayout = findViewById(R.id.tabs);
-        TabLayout.Tab tab = tabLayout.getTabAt(0);
+        TabLayout.Tab tab = tabLayout.getTabAt(index);
         if (tab != null) {
-            tab.select();
+            try {
+                tab.select();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

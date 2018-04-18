@@ -49,6 +49,9 @@ public interface AppDao {
     @Query("SELECT * FROM MoodLog WHERE dateTime = (:date)")
     MoodLog getMoodLog(Date date);
 
+    @Query("SELECT * FROM MoodLog WHERE dateTime >= (:startDate) AND dateTime <= (:endDate) LIMIT 1")
+    MoodLog getMoodLog(Date startDate, Date endDate);
+
     @Query("SELECT * FROM MoodLog")
     List<MoodLog> getAllMoodLog();
 

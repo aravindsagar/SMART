@@ -13,6 +13,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
@@ -38,6 +40,9 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -47,7 +52,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -102,9 +106,7 @@ public class AggregateReportFragment extends Fragment implements
 
             // Read usage info from DB.
             AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
-            List<DailyAppUsage> appUsages = dao.getAppUsage(
-                    new Date(UsageStatsUtil.getStartOfDayMillis(myStartDate)),
-                    new Date(UsageStatsUtil.getStartOfDayMillis(myEndDate)));
+            List<DailyAppUsage> appUsages = dao.getAppUsage(myStartDate, myEndDate);
 
             // This map will hold the key value pairs to be inserted in the chart.
             int maxDayIdx = getDayIdx(myStartDate.getTime(), myEndDate.getTime());
@@ -113,6 +115,7 @@ public class AggregateReportFragment extends Fragment implements
             Map<String, List<String>> subtitleInfo = new HashMap<>();
             Set<String> xSubVals = new HashSet<>();
             Map<String, AppDetails> appDetailMap = new HashMap<>();
+            Map<String, Long> totalUsageMap = new HashMap<>(xSubVals.size());
 
             // Initialize state with defaults.
             myLegendInfos = new ArrayList<>();
@@ -123,49 +126,100 @@ public class AggregateReportFragment extends Fragment implements
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
-                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
+//                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
 
+                Log.d("Start date", AXIS_DATE_FORMAT.format(myStartDate));
+                Log.d(AXIS_DATE_FORMAT.format(appUsage.getDate()), getDayIdx(myStartDate.getTime(), appUsage.getDate().getTime()) + "");
                 Map<String, Long> usageMap = usageData.get(getDayIdx(myStartDate.getTime(), appUsage.getDate().getTime()));
 
+                String key;
+                long val;
                 if (isInAppView()) {
                     if (!myCurrentApp.equals(appDetails.getPackageName())) { continue; }
-                    usageMap.put(appDetails.getPackageName(), appUsage.getDailyUseTime());
-                    xSubVals.add(appDetails.getPackageName());
+                    key = appDetails.getPackageName();
+                    val = appUsage.getDailyUseTime();
+                    usageMap.put(key, val);
                 } else if (isInCategoryView()) {
                     if (!myCurrentCategory.equals(appDetails.getCategory())) { continue; }
-                    usageMap.put(appDetails.getPackageName(), appUsage.getDailyUseTime());
-                    xSubVals.add(appDetails.getPackageName());
+                    key = appDetails.getPackageName();
+                    val = appUsage.getDailyUseTime();
+                    usageMap.put(key, val);
                 } else {
-                    if (usageMap.containsKey(category)) {
-                        usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
-                        subtitleInfo.get(category).add(appDetails.getAppName());
+                    key = category;
+                    val = appUsage.getDailyUseTime();
+                    if (usageMap.containsKey(key)) {
+                        usageMap.put(key, usageMap.get(key) + val);
+                        subtitleInfo.get(key).add(appDetails.getAppName());
                     } else {
-                        usageMap.put(category, appUsage.getDailyUseTime());
-                        subtitleInfo.put(category, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
+                        usageMap.put(key, val);
+                        subtitleInfo.put(key, new ArrayList<>(Collections.singleton(appDetails.getAppName())));
                     }
-                    xSubVals.add(category);
                 }
+                xSubVals.add(key);
                 myTotalUsageTime += appUsage.getDailyUseTime();
                 appDetailMap.put(appDetails.getPackageName(), appDetails);
+                if (totalUsageMap.containsKey(key)) {
+                    totalUsageMap.put(key, totalUsageMap.get(key) + val);
+                } else {
+                    totalUsageMap.put(key, val);
+                }
             }
 
             // Calculate chart data from the usage data.
-            List<BarEntry> entries = processUsageMap(usageData, subtitleInfo, xSubVals, appDetailMap);
+            if (getActivity() == null) return;
+
+            List<BarEntry> entries = processUsageMap(usageData, subtitleInfo, xSubVals, appDetailMap, totalUsageMap);
             BarDataSet dataSet = new BarDataSet(entries, "Usage");
-            dataSet.setColors(CHART_COLORS);
+
+            // Chart colors!
+            int[] colors = new int[(maxDayIdx+1) * (xSubVals.size())];
+            for (int i = 0; i < colors.length; i+=xSubVals.size()) {
+                System.arraycopy(CHART_COLORS, 0, colors, i, Math.min(xSubVals.size(), CHART_COLORS.length));
+                for (int j = 0; j < xSubVals.size() - CHART_COLORS.length; j++) {
+                    colors[i+CHART_COLORS.length+j] = CHART_COLORS[CHART_COLORS.length-1];
+                }
+            }
+            dataSet.setColors(colors);
             dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
             myChartData = new CombinedData();
             myChartData.setData(new BarData(dataSet));
+            myChartData.setData(getEmotionData());
+            myChartData.setDrawValues(false);
             myHandler.post(postLoadData);
         }
 
+        private LineData getEmotionData() {
+            if (getActivity() == null) return null;
+            List<Entry> lineEntries = new ArrayList<>();
+            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+            for (int i = 0; i <= getDayIdx(myStartDate.getTime(), myEndDate.getTime()); i++) {
+                MoodLog dayMood = dao.getMoodLog(
+                        new Date(myStartDate.getTime() + i * DateUtils.DAY_IN_MILLIS),
+                        new Date(myStartDate.getTime() + (i + 1) * DateUtils.DAY_IN_MILLIS)
+                );
+                if (dayMood == null) continue;
+                lineEntries.add(new Entry(
+                        getDayIdx(myStartDate.getTime(), UsageStatsUtil.getStartOfDayMillis(dayMood.dateTime)),
+                        (float) dayMood.happy_value * 4));
+            }
+            if (lineEntries.isEmpty()) return null;
+
+            LineDataSet dataSet = new LineDataSet(lineEntries, "Mood");
+            dataSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+            LineData data = new LineData(dataSet);
+            data.setValueFormatter((value, entry, dataSetIndex, viewPortHandler) -> getEmoji((int) value));
+            return data;
+        }
+
         private List<BarEntry> processUsageMap(List<Map<String, Long>> usageData,
-                Map<String, List<String>> subtitleInfo, Set<String> xSubVals, Map<String, AppDetails> appDetailMap) {
+                Map<String, List<String>> subtitleInfo, Set<String> xSubValSet, Map<String,
+                AppDetails> appDetailMap, Map<String, Long> totalUsageMap) {
+
+            List<String> xSubVals = new ArrayList<>(xSubValSet);
+            Collections.sort(xSubVals, (a, b) -> Long.compare(totalUsageMap.get(b), totalUsageMap.get(a)));
 
             // Output list.
             List<BarEntry> entries = new ArrayList<>(usageData.size());
-
-            Map<String, Long> totalUsageMap = new HashMap<>(xSubVals.size());
 
             for (int i = 0; i < usageData.size(); i++) {
                 Map<String, Long> usageMap = usageData.get(i);
@@ -178,11 +232,6 @@ public class AggregateReportFragment extends Fragment implements
                         vals[j] = 0;
                     }
 
-                    if (totalUsageMap.containsKey(xSubVal)) {
-                        totalUsageMap.put(xSubVal, (long) (totalUsageMap.get(xSubVal) + vals[j]));
-                    } else {
-                        totalUsageMap.put(xSubVal, (long) vals[j]);
-                    }
                     j++;
                 }
                 entries.add(new BarEntry(i, vals));
@@ -204,7 +253,8 @@ public class AggregateReportFragment extends Fragment implements
                     subtitle = GraphUtil.buildSubtitle(getActivity(), subtitleInfo.get(xSubVal));
                 }
                 myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subtitle, icon,
-                        totalUsageMap.get(xSubVal), CHART_COLORS[i++]));
+                        totalUsageMap.get(xSubVal), CHART_COLORS[Math.min(i, CHART_COLORS.length-1)]));
+                i++;
             }
 
             return entries;
@@ -329,12 +379,19 @@ public class AggregateReportFragment extends Fragment implements
 
         myChart.getDescription().setEnabled(false);
         myChart.getLegend().setEnabled(false);
-        myChart.getXAxis().setValueFormatter((v, a) ->
+        XAxis xAxis = myChart.getXAxis();
+        xAxis.setValueFormatter((v, a) ->
                 AXIS_DATE_FORMAT.format(new Date((myStartDate.getTime() + (long) v * DateUtils.DAY_IN_MILLIS))));
-        myChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
-        myChart.getAxisLeft().setAxisMinimum(0);
-        myChart.getAxisLeft().setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, getActivity()));
-        myChart.getAxisRight().setAxisMinimum(0);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        YAxis yAxisLeft = myChart.getAxisLeft(), yAxisRight = myChart.getAxisRight();
+        yAxisLeft.setAxisMinimum(0);
+        yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, getActivity()));
+        yAxisLeft.setDrawGridLines(false);
+        yAxisRight.setAxisMinimum(0);
+        yAxisRight.setValueFormatter((v, a) -> getEmoji((int) v));
+        yAxisRight.setDrawGridLines(false);
+        yAxisRight.setGranularity(1f);
+        yAxisRight.setAxisMinimum(-1f);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         myLegend.setLayoutManager(layoutManager);
@@ -343,8 +400,10 @@ public class AggregateReportFragment extends Fragment implements
         myLegend.addItemDecoration(dividerItemDecoration);
         myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;
-        myStartDate = new Date(getArguments().getLong(EXTRA_START_DATE, System.currentTimeMillis()));
-        myEndDate = new Date(getArguments().getLong(EXTRA_END_DATE, System.currentTimeMillis()));
+        myStartDate = new Date(UsageStatsUtil.getStartOfDayMillis(
+                new Date(getArguments().getLong(EXTRA_START_DATE, System.currentTimeMillis()))));
+        myEndDate = new Date(UsageStatsUtil.getStartOfDayMillis(
+                new Date(getArguments().getLong(EXTRA_END_DATE, System.currentTimeMillis()))));
     }
 
     private void setChartData() {
@@ -354,7 +413,11 @@ public class AggregateReportFragment extends Fragment implements
 
     @Override
     public void onItemClick(int position) {
-        switchToPerCategoryView(myLegendInfos.get(position).getTitle());
+        if (isInCategoryView()) {
+            switchtoPerAppView(myLegendInfos.get(position).getSubTitle());
+        } else {
+            switchToPerCategoryView(myLegendInfos.get(position).getTitle());
+        }
     }
 
     @Override
@@ -422,30 +485,20 @@ public class AggregateReportFragment extends Fragment implements
         return true;
     }
 
+    private String getEmoji(int value) {
+        switch (value) {
+            case 0: return getActivity().getString(R.string.emotion_level_1);
+            case 1: return getActivity().getString(R.string.emotion_level_2);
+            case 2: return getActivity().getString(R.string.emotion_level_3);
+            case 3: return getActivity().getString(R.string.emotion_level_4);
+            default: return getActivity().getString(R.string.emotion_level_5);
+
+        }
+    }
+
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         return event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && goBack();
-    }
-
-    private String getEmojiByUnicode(int unicode){
-        return new String(Character.toChars(unicode));
-    }
-
-    private String buildSubtitle(List<String> items) {
-        if (getActivity() == null) return null;
-
-        StringBuilder sb = new StringBuilder();
-        if (items.size() <= 0) {
-            sb.append("");
-        } else if (items.size() == 1) {
-            sb.append(items.get(0));
-        } else if (items.size() == 2) {
-            sb.append(items.get(0)).append(" ").append("and").append(" ").append(items.get(1));
-        } else {
-            sb.append(items.get(0)).append(", ").append(items.get(1))
-                    .append(String.format(Locale.getDefault(), getActivity().getString(R.string.n_more_apps), items.size() - 2));
-        }
-        return sb.toString();
     }
 
     @Override
