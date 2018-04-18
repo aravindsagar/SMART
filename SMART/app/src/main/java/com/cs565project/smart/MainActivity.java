@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Setup the tabs.
         TabLayout tabs = findViewById(R.id.tabs);
         ViewPager pager = findViewById(R.id.main_viewpager);
+
         MainTabsAdapter adapter = new MainTabsAdapter(getFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
@@ -139,6 +140,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myDrawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    public void switchToTab(int index) {
+        TabLayout tabLayout = findViewById(R.id.tabs);
+        TabLayout.Tab tab = tabLayout.getTabAt(0);
+        if (tab != null) {
+            tab.select();
         }
     }
 }

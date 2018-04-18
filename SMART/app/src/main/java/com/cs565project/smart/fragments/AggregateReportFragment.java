@@ -1,9 +1,9 @@
 package com.cs565project.smart.fragments;
 
 
-import android.animation.TimeInterpolator;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -17,7 +17,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import com.cs565project.smart.R;
@@ -29,6 +28,7 @@ import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.CombinedChart;
@@ -73,7 +73,6 @@ public class AggregateReportFragment extends Fragment implements
             rgb("#006064"), rgb("#0d47a1"), rgb("#fdd835"), rgb("#ff1744"),
             rgb("#000000")
     };
-    private static final int MAX_ENTRIES = CHART_COLORS.length;
 
     @SuppressLint("SimpleDateFormat")
     private static final DateFormat AXIS_DATE_FORMAT = new SimpleDateFormat("MMM dd");
@@ -91,7 +90,6 @@ public class AggregateReportFragment extends Fragment implements
     private Date myStartDate, myEndDate;
     private String myCurrentCategory;
     private String myCurrentApp;
-    private TimeInterpolator myInterpolator = new AccelerateDecelerateInterpolator();
 
     // For background execution.
     private Executor myExecutor = Executors.newSingleThreadExecutor();
@@ -114,6 +112,7 @@ public class AggregateReportFragment extends Fragment implements
             for (int i = 0; i <= maxDayIdx; i++) usageData.add(new HashMap<>());
             Map<String, List<String>> subtitleInfo = new HashMap<>();
             Set<String> xSubVals = new HashSet<>();
+            Map<String, AppDetails> appDetailMap = new HashMap<>();
 
             // Initialize state with defaults.
             myLegendInfos = new ArrayList<>();
@@ -147,10 +146,11 @@ public class AggregateReportFragment extends Fragment implements
                     xSubVals.add(category);
                 }
                 myTotalUsageTime += appUsage.getDailyUseTime();
+                appDetailMap.put(appDetails.getPackageName(), appDetails);
             }
 
             // Calculate chart data from the usage data.
-            List<BarEntry> entries = processUsageMap(usageData, subtitleInfo, xSubVals);
+            List<BarEntry> entries = processUsageMap(usageData, subtitleInfo, xSubVals, appDetailMap);
             BarDataSet dataSet = new BarDataSet(entries, "Usage");
             dataSet.setColors(CHART_COLORS);
             dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -160,10 +160,12 @@ public class AggregateReportFragment extends Fragment implements
         }
 
         private List<BarEntry> processUsageMap(List<Map<String, Long>> usageData,
-                Map<String, List<String>> subtitleInfo, Set<String> xSubVals) {
+                Map<String, List<String>> subtitleInfo, Set<String> xSubVals, Map<String, AppDetails> appDetailMap) {
 
             // Output list.
             List<BarEntry> entries = new ArrayList<>(usageData.size());
+
+            Map<String, Long> totalUsageMap = new HashMap<>(xSubVals.size());
 
             for (int i = 0; i < usageData.size(); i++) {
                 Map<String, Long> usageMap = usageData.get(i);
@@ -171,12 +173,38 @@ public class AggregateReportFragment extends Fragment implements
                 int j = 0;
                 for (String xSubVal : xSubVals) {
                     if (usageMap.containsKey(xSubVal)) {
-                        vals[j++] = (float) usageMap.get(xSubVal) / DateUtils.MINUTE_IN_MILLIS;
+                        vals[j] = (float) usageMap.get(xSubVal);
                     } else {
-                        vals[j++] = 0;
+                        vals[j] = 0;
                     }
+
+                    if (totalUsageMap.containsKey(xSubVal)) {
+                        totalUsageMap.put(xSubVal, (long) (totalUsageMap.get(xSubVal) + vals[j]));
+                    } else {
+                        totalUsageMap.put(xSubVal, (long) vals[j]);
+                    }
+                    j++;
                 }
                 entries.add(new BarEntry(i, vals));
+            }
+
+            // Legend entries.
+            myLegendInfos = new ArrayList<>();
+            int i = 0;
+            for (String xSubVal : xSubVals) {
+                String title, subtitle;
+                Drawable icon = null;
+                if (isInAppView() || isInCategoryView()) {
+                    AppDetails app = appDetailMap.get(xSubVal);
+                    title = app.getAppName();
+                    subtitle = xSubVal;
+                    icon = new AppInfo(xSubVal, getActivity()).getAppIcon();
+                } else {
+                    title = xSubVal;
+                    subtitle = GraphUtil.buildSubtitle(getActivity(), subtitleInfo.get(xSubVal));
+                }
+                myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subtitle, icon,
+                        totalUsageMap.get(xSubVal), CHART_COLORS[i++]));
             }
 
             return entries;
@@ -305,6 +333,7 @@ public class AggregateReportFragment extends Fragment implements
                 AXIS_DATE_FORMAT.format(new Date((myStartDate.getTime() + (long) v * DateUtils.DAY_IN_MILLIS))));
         myChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         myChart.getAxisLeft().setAxisMinimum(0);
+        myChart.getAxisLeft().setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, getActivity()));
         myChart.getAxisRight().setAxisMinimum(0);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());

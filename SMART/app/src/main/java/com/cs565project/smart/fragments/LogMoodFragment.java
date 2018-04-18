@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 
+import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.util.CameraUtil;
 import com.google.android.cameraview.CameraView;
@@ -29,11 +30,12 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
     private static final String TAG = "CameraView";
 
 
-    private Handler     myBackgroundHandler;
-    private CameraView  myCameraView;
-    private RadioGroup  myMoodRadios;
+    private Handler              myBackgroundHandler;
+    private CameraView           myCameraView;
+    private RadioGroup           myMoodRadios;
+    private FloatingActionButton myTakePicBtn;
 
-    private CameraUtil  myCameraUtil;
+    private CameraUtil           myCameraUtil;
 
     public LogMoodFragment() {
         // Required empty public constructor
@@ -46,12 +48,6 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
                 // Record mood according to user's selection.
                 if (myCameraView.getVisibility() == View.VISIBLE) {
                     myCameraView.takePicture();
-                } else if (myMoodRadios.getVisibility() == View.VISIBLE && myMoodRadios.getCheckedRadioButtonId() != -1) {
-                    int radioBtnIdx = myMoodRadios.indexOfChild(
-                            myMoodRadios.findViewById(myMoodRadios.getCheckedRadioButtonId()));
-                    double moodLevel = (4 - radioBtnIdx) / 4.0;
-                    getBackgroundHandler().post(() ->
-                            myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0, 0.0)));
                 }
             }
         }
@@ -71,13 +67,14 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
         myCameraView.setFacing(CameraView.FACING_FRONT);
         myCameraView.addCallback(onCallback);
 
-        FloatingActionButton takePic = root.findViewById(R.id.take_pic);
-        takePic.setOnClickListener(myOnClickListener);
+        myTakePicBtn = root.findViewById(R.id.take_pic);
+        myTakePicBtn.setOnClickListener(myOnClickListener);
 
         RadioGroup inputTypeGroup = root.findViewById(R.id.radio_group);
         myMoodRadios = root.findViewById(R.id.mood_level_radios);
         inputTypeGroup.setOnCheckedChangeListener(this);
         inputTypeGroup.check(R.id.take_photo_radio);
+        myMoodRadios.setOnCheckedChangeListener(this);
         return root;
     }
 
@@ -123,6 +120,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
 
             getBackgroundHandler().post(() -> myCameraUtil.processPicture(getActivity(), data));
 
+            switchToActivityTab();
             // Main thread idle now
         }
     };
@@ -136,7 +134,20 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         if (group.getId() == R.id.radio_group) {
             myCameraView.setVisibility(checkedId == R.id.take_photo_radio ? View.VISIBLE : View.GONE);
+            myTakePicBtn.setVisibility(checkedId == R.id.take_photo_radio ? View.VISIBLE : View.GONE);
             myMoodRadios.setVisibility(checkedId == R.id.enter_manual_radio ? View.VISIBLE : View.GONE);
+        } else if (group.getId() == R.id.mood_level_radios && checkedId != -1) {
+            int radioBtnIdx = myMoodRadios.indexOfChild(myMoodRadios.findViewById(checkedId));
+            double moodLevel = (4 - radioBtnIdx) / 4.0;
+            getBackgroundHandler().post(() ->
+                    myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0, 0.0)));
+            switchToActivityTab();
         }
+    }
+
+    private void switchToActivityTab() {
+        if (getActivity() == null) return;
+        MainActivity activity = (MainActivity) getActivity();
+        activity.switchToTab(0);
     }
 }

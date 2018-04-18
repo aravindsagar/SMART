@@ -38,6 +38,7 @@ import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -51,7 +52,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -132,7 +132,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
                 // If apps within a category are visible, we need to adjust the data accordingly.
                 if (isInSecondaryView()) {
-                    if ( myCurrentCategory.equals(category)) {
+                    if (myCurrentCategory.equals(category)) {
                         myTotalUsageTime += appUsage.getDailyUseTime();
                         secondaryUsageMap.put(appDetails.getPackageName(), appUsage.getDailyUseTime());
                     }
@@ -185,7 +185,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 } else {
                     // In TOTAL state, the categories are the titles, and apps in them are the subtitles.
                     title = key;
-                    subTitle = buildSubtitle(subtitleInfo.get(key));
+                    subTitle = GraphUtil.buildSubtitle(getActivity(), subtitleInfo.get(key));
                 }
 
                 // We want to limit the number of entries in the chart.
@@ -451,23 +451,6 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
     private String getEmojiByUnicode(int unicode){
         return new String(Character.toChars(unicode));
-    }
-
-    private String buildSubtitle(List<String> items) {
-        if (getActivity() == null) return null;
-
-        StringBuilder sb = new StringBuilder();
-        if (items.size() <= 0) {
-            sb.append("");
-        } else if (items.size() == 1) {
-            sb.append(items.get(0));
-        } else if (items.size() == 2) {
-            sb.append(items.get(0)).append(" ").append("and").append(" ").append(items.get(1));
-        } else {
-            sb.append(items.get(0)).append(", ").append(items.get(1))
-                    .append(String.format(Locale.getDefault(), getActivity().getString(R.string.n_more_apps), items.size() - 2));
-        }
-        return sb.toString();
     }
 
     @Override

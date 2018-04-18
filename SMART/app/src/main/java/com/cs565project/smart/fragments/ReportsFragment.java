@@ -36,6 +36,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
 
     private static final String FRAGMENT_DAY_TAG = "date_picker";
     private static final String KEY_CATEGORY = "category";
+    private static final String KEY_APP = "app";
 
     /**
      * A class for representing various report types.
@@ -91,7 +92,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
     private Date mySingleSelectionDate;
     private Date myRangeSelectionStartDate;
     private Date myRangeSelectionEndDate;
-    private String myDayReportCategory;
+    private String myCategory, myApp;
 
     public ReportsFragment() {
         // Required empty public constructor
@@ -132,6 +133,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             long endDate = savedInstanceState.getLong(KEY_END_DATE, 0);
             spinnerPos = savedInstanceState.getInt(KEY_SPINNER_POSITION, -1);
             String category = savedInstanceState.getString(KEY_CATEGORY);
+            String app = savedInstanceState.getString(KEY_APP);
 
             if (startDate > 0) {
                 myRangeSelectionStartDate = new Date(startDate);
@@ -143,7 +145,10 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
                 mySingleSelectionDate = new Date(singleDate);
             }
             if (category != null) {
-                myDayReportCategory = category;
+                myCategory = category;
+            }
+            if (app != null) {
+                myApp = app;
             }
         }
         if (spinnerPos > -1) {
@@ -201,11 +206,12 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         }
         myDatesText.setText(dateStr);
 
-        // If myDayReportCategory is not empty, it means that we restored from saved state, and has
+        // If myCategory is not empty, it means that we restored from saved state, and has
         // to get our child fragment into the same state. So we pass in the category. But we don't
         // want to enforce this category when user selects a different date, so unset the category.
-        String category = myDayReportCategory;
-        myDayReportCategory = "";
+        String category = myCategory, app = myApp;
+        myCategory = "";
+        myApp = "";
 
         // TODO make this more generic
         if (myCurrentSpinnerItem == 0) {
@@ -217,7 +223,7 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
             getChildFragmentManager().beginTransaction().replace(
                     R.id.reports_child_frame,
                     AggregateReportFragment.getInstance(myRangeSelectionStartDate.getTime(),
-                            myRangeSelectionEndDate.getTime(), category, null)
+                            myRangeSelectionEndDate.getTime(), category, app)
             ).commit();
         }
     }
@@ -267,6 +273,9 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.reports_child_frame);
         if (fragment instanceof DayReportFragment) {
             outState.putString(KEY_CATEGORY, ((DayReportFragment) fragment).getCurrentCategory());
+        } else if (fragment instanceof AggregateReportFragment) {
+            outState.putString(KEY_CATEGORY, ((AggregateReportFragment) fragment).getCurrentCategory());
+            outState.putString(KEY_APP, ((AggregateReportFragment) fragment).getCurrentApp());
         }
     }
 }
