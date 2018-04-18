@@ -37,6 +37,7 @@ import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
+import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.DbUtils;
 import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
@@ -89,13 +90,15 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
     private long myTotalUsageTime;
     private Date myDate;
     private String myCurrentCategory;
-    private TimeInterpolator myInterpolator = new AccelerateDecelerateInterpolator();
     private int myPieX, myMinimizedPieX;
     private boolean myAnimatePie;
+    private String myMood;
 
     // For background execution.
     private Executor myExecutor = Executors.newSingleThreadExecutor();
     private Handler myHandler = new Handler();
+    private TimeInterpolator myInterpolator = new AccelerateDecelerateInterpolator();
+    private EmotionUtil myEmotionUtil;
 
     // Runnable to collect app usage information and update our state. Don't run in UI thread.
     private Runnable loadData = new Runnable() {
@@ -156,6 +159,9 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 secondaryDataSet.setDrawValues(false);
                 mySecondaryPieData = new PieData(secondaryDataSet);
             }
+
+            // Also load the mood.
+            myMood = myEmotionUtil.getEmoji((int) Math.round(myEmotionUtil.getLatestMoodLog(myDate).happy_value * 4));
 
             myHandler.post(postLoadData);
         }
@@ -239,7 +245,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                     String.format(getString(R.string.duration_in_category), Html.fromHtml(myCurrentCategory).toString()) :
                     getString(R.string.total);
             SpannableString centerTextMood = new SpannableString(
-                    getString(R.string.mood) + " " + getEmojiByUnicode(0x1F60A)); // TODO replace with emoji matching mood.
+                    getString(R.string.mood) + " " + myMood); // TODO replace with emoji matching mood.
             CharSequence centerText = TextUtils.concat(centerTextDuration, "\n", centerTextCategory, "\n\n", centerTextMood);
 
             if (isInSecondaryView()) {
@@ -286,6 +292,9 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        myEmotionUtil = new EmotionUtil(getActivity());
+
         // Inflate the layout for this fragment
         myRootView = inflater.inflate(R.layout.fragment_day_report, container, false);
 
@@ -450,9 +459,9 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
         return event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && goBack();
     }
 
-    private String getEmojiByUnicode(int unicode){
+    /*private String getEmojiByUnicode(int unicode){
         return new String(Character.toChars(unicode));
-    }
+    }*/
 
     @Override
     public void onDurationConfirmed(String packageName, long duration) {

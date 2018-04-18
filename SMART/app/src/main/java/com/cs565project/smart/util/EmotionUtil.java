@@ -3,9 +3,11 @@ package com.cs565project.smart.util;
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.cs565project.smart.R;
 import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.MoodLog;
@@ -19,14 +21,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class CameraUtil {
+public class EmotionUtil {
     private Handler myUIHandler = new Handler();
+    private Context myContext;
 
-    public void processPicture(Context context, byte[] data) {
-        File file = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+    public EmotionUtil(Context context) {
+        this.myContext = context;
+    }
+
+    public void processPicture(byte[] data) {
+        File file = new File(myContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 "picture.jpg");
         OutputStream os = null;
         try {
@@ -34,7 +42,7 @@ public class CameraUtil {
             os.write(data);
             os.close();
         } catch (IOException e) {
-            Log.w("CameraUtil", "Cannot write to " + file, e);
+            Log.w("EmotionUtil", "Cannot write to " + file, e);
         } finally {
             if (os != null) {
                 try {
@@ -47,13 +55,13 @@ public class CameraUtil {
 
         // callback thread runs rest of picture data management?
         try {
-            manageData(context, data);
+            manageData(data);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void manageData(Context context, byte[] data) throws JSONException {
+    private void manageData(byte[] data) throws JSONException {
         byte[] myPic = data;       // TODO: need to grab the picture taken
 
         // Steps to connect to image analysis API's. Currently not connected/merged
@@ -70,27 +78,45 @@ public class CameraUtil {
             featureScores.add(scores.getDouble(i));
         }
 
-        insertMoodLog(context, featureScores);
+        insertMoodLog(featureScores);
     }
 
-    public void insertMoodLog(Context context, List<Double> moodData) {
-        AppDao dao = AppDatabase.getAppDatabase(context.getApplicationContext()).appDao();
+    public void insertMoodLog(List<Double> moodData) {
+        AppDao dao = AppDatabase.getAppDatabase(myContext.getApplicationContext()).appDao();
         Date now = new Date();
         long startOfDay = UsageStatsUtil.getStartOfDayMillis(now);
-        MoodLog existingLog = dao.getMoodLog(new Date(startOfDay), now);
+        MoodLog existingLog = getLatestMoodLog(now);
 
         if (existingLog != null) {
             long logTimeDelta = now.getTime() - existingLog.dateTime.getTime();
-            long existingWeight = existingLog.dateTime.getTime() + logTimeDelta / 2 - startOfDay;
-            long newWeight = logTimeDelta / 2;
+            long existingWeight = existingLog.dateTime.getTime() - startOfDay;
             for (int i = 0; i < moodData.size(); i++) {
-                moodData.set(i, (existingLog.getValByIndex(i) * existingWeight + moodData.get(i) * newWeight) /
-                        (existingWeight + newWeight));
+                moodData.set(i, (existingLog.getValByIndex(i) * existingWeight + moodData.get(i) * logTimeDelta) /
+                        (existingWeight + logTimeDelta));
             }
         }
         MoodLog ml = new MoodLog(now, moodData);
         dao.insertMood(ml);
 
-        myUIHandler.post(() -> Toast.makeText(context, "Mood saved", Toast.LENGTH_SHORT).show());
+        myUIHandler.post(() -> Toast.makeText(myContext, "Mood saved", Toast.LENGTH_SHORT).show());
+    }
+
+    public MoodLog getLatestMoodLog(Date date) {
+        AppDao dao = AppDatabase.getAppDatabase(myContext.getApplicationContext()).appDao();
+        long startOfDay = UsageStatsUtil.getStartOfDayMillis(date);
+        List<MoodLog> existingLogs = dao.getMoodLog(new Date(startOfDay), new Date(startOfDay + DateUtils.DAY_IN_MILLIS - 1));
+        if (existingLogs.isEmpty()) { return null; }
+        return Collections.max(existingLogs, (a, b) -> Long.compare(a.dateTime.getTime(), b.dateTime.getTime()));
+    }
+
+    public String getEmoji(int value) {
+        switch (value) {
+            case 0: return myContext.getString(R.string.emotion_level_1);
+            case 1: return myContext.getString(R.string.emotion_level_2);
+            case 2: return myContext.getString(R.string.emotion_level_3);
+            case 3: return myContext.getString(R.string.emotion_level_4);
+            default: return myContext.getString(R.string.emotion_level_5);
+
+        }
     }
 }

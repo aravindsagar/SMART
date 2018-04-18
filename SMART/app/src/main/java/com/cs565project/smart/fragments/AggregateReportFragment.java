@@ -3,6 +3,7 @@ package com.cs565project.smart.fragments;
 
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,6 +30,7 @@ import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
+import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.DbUtils;
 import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
@@ -98,6 +100,7 @@ public class AggregateReportFragment extends Fragment implements
     // For background execution.
     private Executor myExecutor = Executors.newSingleThreadExecutor();
     private Handler myHandler = new Handler();
+    private EmotionUtil myEmotionUtil;
 
     // Runnable to collect app usage information and update our state. Don't run in UI thread.
     private Runnable loadData = new Runnable() {
@@ -128,8 +131,6 @@ public class AggregateReportFragment extends Fragment implements
 
 //                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
 
-                Log.d("Start date", AXIS_DATE_FORMAT.format(myStartDate));
-                Log.d(AXIS_DATE_FORMAT.format(appUsage.getDate()), getDayIdx(myStartDate.getTime(), appUsage.getDate().getTime()) + "");
                 Map<String, Long> usageMap = usageData.get(getDayIdx(myStartDate.getTime(), appUsage.getDate().getTime()));
 
                 String key;
@@ -181,33 +182,39 @@ public class AggregateReportFragment extends Fragment implements
             }
             dataSet.setColors(colors);
             dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+            BarData barData = new BarData(dataSet);
+            barData.setDrawValues(false);
             myChartData = new CombinedData();
-            myChartData.setData(new BarData(dataSet));
+            myChartData.setData(barData);
             myChartData.setData(getEmotionData());
-            myChartData.setDrawValues(false);
             myHandler.post(postLoadData);
         }
 
         private LineData getEmotionData() {
             if (getActivity() == null) return null;
             List<Entry> lineEntries = new ArrayList<>();
-            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
             for (int i = 0; i <= getDayIdx(myStartDate.getTime(), myEndDate.getTime()); i++) {
-                MoodLog dayMood = dao.getMoodLog(
-                        new Date(myStartDate.getTime() + i * DateUtils.DAY_IN_MILLIS),
-                        new Date(myStartDate.getTime() + (i + 1) * DateUtils.DAY_IN_MILLIS)
+                MoodLog dayMood = myEmotionUtil.getLatestMoodLog(
+                        new Date(myStartDate.getTime() + i * DateUtils.DAY_IN_MILLIS)
                 );
                 if (dayMood == null) continue;
                 lineEntries.add(new Entry(
                         getDayIdx(myStartDate.getTime(), UsageStatsUtil.getStartOfDayMillis(dayMood.dateTime)),
                         (float) dayMood.happy_value * 4));
+                Log.d("Mood", dayMood.happy_value + " in " + AXIS_DATE_FORMAT.format(new Date(myStartDate.getTime() + i * DateUtils.DAY_IN_MILLIS)));
             }
             if (lineEntries.isEmpty()) return null;
 
             LineDataSet dataSet = new LineDataSet(lineEntries, "Mood");
             dataSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+            dataSet.setLineWidth(1.5f);
+            dataSet.setColor(Color.BLACK);
+            dataSet.setCircleColor(Color.BLACK);
+            dataSet.setValueTextColor(Color.argb(150, 0, 0, 0));
             LineData data = new LineData(dataSet);
-            data.setValueFormatter((value, entry, dataSetIndex, viewPortHandler) -> getEmoji((int) value));
+            data.setValueFormatter((value, entry, dataSetIndex, viewPortHandler) -> myEmotionUtil.getEmoji(Math.round(value)));
+            data.setDrawValues(true);
+            data.setValueTextSize(12f);
             return data;
         }
 
@@ -259,10 +266,6 @@ public class AggregateReportFragment extends Fragment implements
 
             return entries;
         }
-
-        private int getDayIdx(long startDate, long date) {
-            return (int) ((date - startDate) / DateUtils.DAY_IN_MILLIS);
-        }
     };
 
     // Runnable to be run in the UI thread after our state has been updated.
@@ -275,6 +278,7 @@ public class AggregateReportFragment extends Fragment implements
 
             // Update the chart data.
             myChart.animateY(600, Easing.EasingOption.EaseInOutQuad);
+            myChart.getXAxis().setAxisMaximum(getDayIdx(myStartDate.getTime(), myEndDate.getTime()) + 0.5f);
             myChart.setData(myChartData);
 
             myChart.invalidate();
@@ -321,6 +325,9 @@ public class AggregateReportFragment extends Fragment implements
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        myEmotionUtil = new EmotionUtil(getActivity());
+
         // Inflate the layout for this fragment
         myRootView = inflater.inflate(R.layout.fragment_aggreagate_report, container, false);
 
@@ -388,7 +395,7 @@ public class AggregateReportFragment extends Fragment implements
         yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, getActivity()));
         yAxisLeft.setDrawGridLines(false);
         yAxisRight.setAxisMinimum(0);
-        yAxisRight.setValueFormatter((v, a) -> getEmoji((int) v));
+        yAxisRight.setValueFormatter((v, a) -> myEmotionUtil.getEmoji((int) v));
         yAxisRight.setDrawGridLines(false);
         yAxisRight.setGranularity(1f);
         yAxisRight.setAxisMinimum(-1f);
@@ -430,12 +437,10 @@ public class AggregateReportFragment extends Fragment implements
                         dao.getAppDetails(legendInfo.getSubTitle()),
                         dao.getAppUsage(legendInfo.getSubTitle())
                 );
-                myHandler.post(() -> {
-                    SetRestrictionFragment
-                            .newInstance(legendInfo.getTitle(), legendInfo.getSubTitle(), thresholdTime)
-                            .setListener(AggregateReportFragment.this)
-                            .show(getChildFragmentManager(), "SET_RESTRICTION");
-                });
+                myHandler.post(() -> SetRestrictionFragment
+                        .newInstance(legendInfo.getTitle(), legendInfo.getSubTitle(), thresholdTime)
+                        .setListener(AggregateReportFragment.this)
+                        .show(getChildFragmentManager(), "SET_RESTRICTION"));
             });
 
             return true;
@@ -485,15 +490,8 @@ public class AggregateReportFragment extends Fragment implements
         return true;
     }
 
-    private String getEmoji(int value) {
-        switch (value) {
-            case 0: return getActivity().getString(R.string.emotion_level_1);
-            case 1: return getActivity().getString(R.string.emotion_level_2);
-            case 2: return getActivity().getString(R.string.emotion_level_3);
-            case 3: return getActivity().getString(R.string.emotion_level_4);
-            default: return getActivity().getString(R.string.emotion_level_5);
-
-        }
+    private int getDayIdx(long startDate, long date) {
+        return (int) ((date - startDate) / DateUtils.DAY_IN_MILLIS);
     }
 
     @Override

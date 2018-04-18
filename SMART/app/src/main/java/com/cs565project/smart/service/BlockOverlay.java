@@ -22,7 +22,7 @@ import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.recommender.NewsItem;
-import com.cs565project.smart.util.CameraUtil;
+import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.google.android.cameraview.CameraView;
 
@@ -44,7 +44,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
     private Executor myExecutor = Executors.newSingleThreadExecutor();
     private Handler myHandler = new Handler();
-    private CameraUtil myCameraUtil = new CameraUtil();
+    private EmotionUtil myEmotionUtil;
 
     private int page = 0;
     private float scrollStartY = 0;
@@ -58,6 +58,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
             myWallpaper = wallpaperManager.getDrawable();
             myNewsItems = Collections.emptyList();
         }
+        myEmotionUtil = new EmotionUtil(context);
     }
 
     public void setApp(AppDetails appDetails, Drawable icon) {
@@ -231,7 +232,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         super.remove();
     }
 
-    CameraView.Callback myCameraCallback = new CameraView.Callback() {
+    private CameraView.Callback myCameraCallback = new CameraView.Callback() {
         @Override
         public void onCameraOpened(CameraView cameraView) {
             super.onCameraOpened(cameraView);
@@ -246,7 +247,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         @Override
         public void onPictureTaken(CameraView cameraView, byte[] data) throws JSONException {
             super.onPictureTaken(cameraView, data);
-            myExecutor.execute(() -> myCameraUtil.processPicture(getContext(), data));
+            myExecutor.execute(() -> myEmotionUtil.processPicture(data));
         }
     };
 }

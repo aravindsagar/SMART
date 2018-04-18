@@ -16,7 +16,7 @@ import android.widget.RadioGroup;
 
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
-import com.cs565project.smart.util.CameraUtil;
+import com.cs565project.smart.util.EmotionUtil;
 import com.google.android.cameraview.CameraView;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
     private RadioGroup           myMoodRadios;
     private FloatingActionButton myTakePicBtn;
 
-    private CameraUtil           myCameraUtil;
+    private EmotionUtil myEmotionUtil;
 
     public LogMoodFragment() {
         // Required empty public constructor
@@ -61,7 +61,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
         View root = inflater.inflate(R.layout.fragment_log_mood, container, false);
         root.setOnKeyListener(this);
 
-        myCameraUtil = new CameraUtil();
+        myEmotionUtil = new EmotionUtil(getActivity());
 
         myCameraView = root.findViewById(R.id.camera_view);
         myCameraView.setFacing(CameraView.FACING_FRONT);
@@ -118,7 +118,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
 
             Log.d(TAG, "onPictureTaken " + data.length);
 
-            getBackgroundHandler().post(() -> myCameraUtil.processPicture(getActivity(), data));
+            getBackgroundHandler().post(() -> myEmotionUtil.processPicture(data));
 
             switchToActivityTab();
             // Main thread idle now
@@ -140,7 +140,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
             int radioBtnIdx = myMoodRadios.indexOfChild(myMoodRadios.findViewById(checkedId));
             double moodLevel = (4 - radioBtnIdx) / 4.0;
             getBackgroundHandler().post(() ->
-                    myCameraUtil.insertMoodLog(getActivity(), Arrays.asList(moodLevel, 0.0, 0.0, 0.0)));
+                    myEmotionUtil.insertMoodLog(Arrays.asList(moodLevel, 0.0, 0.0, 0.0)));
             myMoodRadios.clearCheck();
             switchToActivityTab();
         }
