@@ -4,12 +4,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.widget.Toast;
 
 import com.cs565project.smart.fragments.AccountFragment;
 import com.cs565project.smart.fragments.PermissionsFragment;
 import com.cs565project.smart.fragments.RecommendationSettingsFragment;
-import com.cs565project.smart.fragments.RestrictionsFragment;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.paolorotolo.appintro.AppIntro;
 
@@ -25,7 +23,7 @@ public class IntroActivity extends AppIntro {
         // AppIntro will automatically generate the dots indicator and buttons.
         addSlide(new PermissionsFragment());
         addSlide(new AccountFragment());
-        addSlide(new RestrictionsFragment());
+//        addSlide(new RestrictionsFragment());
         addSlide(new RecommendationSettingsFragment());
 
 
