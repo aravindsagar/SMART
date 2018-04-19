@@ -3,6 +3,7 @@ package com.cs565project.smart.fragments;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,8 +14,10 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.cs565project.smart.R;
+import com.cs565project.smart.SettingsActivity;
 import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
@@ -22,6 +25,7 @@ import com.cs565project.smart.fragments.adapter.RestrictionsAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.PreferencesHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +44,7 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
     // Views that we care about.
     private RecyclerView myAppList;
     private SwipeRefreshLayout mySwipeRefreshLayout;
+    private View myNoBlockView;
 
     // Our state.
     List<AppDetails> restrictedApps, otherApps;
@@ -57,7 +62,7 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
             if (getActivity() == null) return;
             Context c = getActivity();
 
-            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+            AppDao dao = AppDatabase.getAppDatabase(c).appDao();
 
             restrictedApps = new ArrayList<>();
             otherApps = new ArrayList<>();
@@ -65,7 +70,7 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
             recommendations = new ArrayList<>();
 
             for (AppDetails appDetails : dao.getAppDetails()) {
-                appInfo.put(appDetails.getPackageName(), new AppInfo(appDetails.getPackageName(), getActivity()));
+                appInfo.put(appDetails.getPackageName(), new AppInfo(appDetails.getPackageName(), c));
 
                 int recommendation = RestrictionRecommender.recommendRestriction(
                         appDetails, dao.getAppUsage(appDetails.getPackageName()), dao.getAllMoodLog());
@@ -111,7 +116,14 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
         myAppList.setLayoutManager(new LinearLayoutManager(getActivity()));
         mySwipeRefreshLayout = rootView.findViewById(R.id.refresh_restrictions);
         mySwipeRefreshLayout.setOnRefreshListener(this);
+        myNoBlockView = rootView.findViewById(R.id.no_app_block_view);
+
         setupAppList();
+
+        Button settingsBtn = rootView.findViewById(R.id.btn_settings);
+        settingsBtn.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), SettingsActivity.class));
+        });
         return rootView;
     }
 
@@ -134,8 +146,21 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
 
     @Override
     public void onDurationConfirmed(String packageName, long duration) {
+        if (getActivity() == null) return;
         mySwipeRefreshLayout.setRefreshing(true);
         myExecutor.execute(new DbUtils.SaveRestrictionToDb(getActivity(), packageName, (int) duration, loadData));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (PreferencesHelper.getBoolPreference(getActivity(), GeneralSettingsFragment.PREF_ALLOW_APP_BLOCK.getKey(), true)) {
+            myNoBlockView.setVisibility(View.GONE);
+            myAppList.setVisibility(View.VISIBLE);
+        } else {
+            myAppList.setVisibility(View.GONE);
+            myNoBlockView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

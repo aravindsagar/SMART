@@ -129,6 +129,14 @@ public class PreferencesHelper {
         public ViewType findView(View rootView) {
             return rootView.findViewById(viewId);
         }
+
+        public String getKey() {
+            return key;
+        }
+
+        public ValueType getDefaultValue() {
+            return defaultValue;
+        }
     }
 
     public static class SwitchPreference extends Preference<Boolean, Switch> {

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -38,9 +39,10 @@ public class PermissionsFragment extends Fragment {
 
     private View.OnClickListener usageAccessListener = new View.OnClickListener() {
         public void onClick(View v) {
+            if (getActivity() == null) return;
             Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
                 startActivity(intent);
             } else {
                 intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
@@ -59,8 +61,9 @@ public class PermissionsFragment extends Fragment {
 
     private View.OnClickListener overlayAccessListener = new View.OnClickListener() {
         public void onClick(View v) {
+            if (getActivity() == null) return;
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getContext().getPackageName()));
+                    Uri.parse("package:" + getActivity().getPackageName()));
             startActivityForResult(intent, 10);
 
 //            TextView tv2 = v.findViewById(R.id.overlayEnabledText);
@@ -71,7 +74,8 @@ public class PermissionsFragment extends Fragment {
     private View.OnClickListener cameraAccessListener = new View.OnClickListener() {
 
         public void onClick(View v) {
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
+            if (getActivity() == null) return;
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                     == PackageManager.PERMISSION_DENIED) {
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.CAMERA},
@@ -87,7 +91,8 @@ public class PermissionsFragment extends Fragment {
     private View.OnClickListener externalStorageAccessListener = new View.OnClickListener() {
 
         public void onClick(View v) {
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+            if (getActivity() == null) return;
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_DENIED) {
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -99,17 +104,20 @@ public class PermissionsFragment extends Fragment {
     };
 
     private String externalStorageEnabled() {
-        return (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+        if (getActivity() == null) return "";
+        return (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_DENIED) ? "Not Enabled" : "Enabled";
     }
 
     private String cameraEnabled() {
-        return (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
+        if (getActivity() == null) return "";
+        return (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_DENIED) ? "Not Enabled" : "Enabled";
     }
 
     private String usageAccessEnabled() {
-        return !UsageStatsUtil.hasUsageAccess(getContext()) ? "Not Enabled" : "Enabled";
+        if (getActivity() == null) return "";
+        return !UsageStatsUtil.hasUsageAccess(getActivity()) ? "Not Enabled" : "Enabled";
     }
 
     private String overlayAccessEnabled() {
@@ -132,7 +140,7 @@ public class PermissionsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_permissions, container, false);

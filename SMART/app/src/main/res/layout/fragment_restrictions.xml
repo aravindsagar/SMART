@@ -5,10 +5,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.cs565project.smart.fragments.RestrictionsFragment">
-
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_restriction_apps"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+        <LinearLayout android:id="@+id/no_app_block_view"
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_blocking_disabled"
+                android:layout_marginBottom="12dp"/>
+            <Button
+                android:id="@+id/btn_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings"/>
+
+        </LinearLayout>
+    </LinearLayout>
 
 </android.support.v4.widget.SwipeRefreshLayout>

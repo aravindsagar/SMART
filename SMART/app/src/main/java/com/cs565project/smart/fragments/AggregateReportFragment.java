@@ -3,6 +3,7 @@ package com.cs565project.smart.fragments;
 
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -30,8 +31,8 @@ import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
-import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
@@ -106,9 +107,10 @@ public class AggregateReportFragment extends Fragment implements
     private Runnable loadData = new Runnable() {
         @Override
         public void run() {
-            if (getActivity() == null) return;
+            Context c = getActivity();
+            if (c == null) return;
             // Read usage info from DB.
-            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+            AppDao dao = AppDatabase.getAppDatabase(c).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(myStartDate, myEndDate);
 
             // This map will hold the key value pairs to be inserted in the chart.
@@ -126,8 +128,7 @@ public class AggregateReportFragment extends Fragment implements
 
             // Populate the usageMap.
             for (DailyAppUsage appUsage : appUsages) {
-                if (getActivity() == null) return;
-                if (getActivity().getPackageName().equals(appUsage.getPackageName())) { continue; }
+                if (c.getPackageName().equals(appUsage.getPackageName())) { continue; }
 
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
@@ -170,8 +171,6 @@ public class AggregateReportFragment extends Fragment implements
             }
 
             // Calculate chart data from the usage data.
-            if (getActivity() == null) return;
-
             List<BarEntry> entries = processUsageMap(usageData, subtitleInfo, xSubVals, appDetailMap, totalUsageMap);
             BarDataSet dataSet = new BarDataSet(entries, "Usage");
 
@@ -230,7 +229,8 @@ public class AggregateReportFragment extends Fragment implements
 
             // Output list.
             List<BarEntry> entries = new ArrayList<>(usageData.size());
-            if (getActivity() == null) { return entries; }
+            Context c = getActivity();
+            if (c == null) { return entries; }
 
             for (int i = 0; i < usageData.size(); i++) {
                 Map<String, Long> usageMap = usageData.get(i);
@@ -258,10 +258,10 @@ public class AggregateReportFragment extends Fragment implements
                     AppDetails app = appDetailMap.get(xSubVal);
                     title = app.getAppName();
                     subtitle = xSubVal;
-                    icon = new AppInfo(xSubVal, getActivity()).getAppIcon();
+                    icon = new AppInfo(xSubVal, c).getAppIcon();
                 } else {
                     title = xSubVal;
-                    subtitle = GraphUtil.buildSubtitle(getActivity(), subtitleInfo.get(xSubVal));
+                    subtitle = GraphUtil.buildSubtitle(c, subtitleInfo.get(xSubVal));
                 }
                 myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subtitle, icon,
                         totalUsageMap.get(xSubVal), CHART_COLORS[Math.min(i, CHART_COLORS.length-1)]));
@@ -276,7 +276,8 @@ public class AggregateReportFragment extends Fragment implements
     private Runnable postLoadData = new Runnable() {
         @Override
         public void run() {
-            if (getActivity() == null) {
+            Context c = getActivity();
+            if (c == null) {
                 return;
             }
 
@@ -290,7 +291,7 @@ public class AggregateReportFragment extends Fragment implements
             // Update the chart legend.
             ChartLegendAdapter adapter = (ChartLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new ChartLegendAdapter(myLegendInfos, myTotalUsageTime, getActivity(), AggregateReportFragment.this);
+                adapter = new ChartLegendAdapter(myLegendInfos, myTotalUsageTime, c, AggregateReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
                 adapter.setData(myLegendInfos, myTotalUsageTime);
@@ -386,7 +387,8 @@ public class AggregateReportFragment extends Fragment implements
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupChartAndLegendView() {
-        if (getActivity() == null) return;
+        Context c = getActivity();
+        if (c == null) return;
 
         myChart.getDescription().setEnabled(false);
         myChart.getLegend().setEnabled(false);
@@ -396,18 +398,19 @@ public class AggregateReportFragment extends Fragment implements
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         YAxis yAxisLeft = myChart.getAxisLeft(), yAxisRight = myChart.getAxisRight();
         yAxisLeft.setAxisMinimum(0);
-        yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, getActivity()));
+        yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, c));
         yAxisLeft.setDrawGridLines(false);
         yAxisRight.setAxisMinimum(0);
         yAxisRight.setValueFormatter((v, a) -> myEmotionUtil.getEmoji((int) v));
         yAxisRight.setDrawGridLines(false);
         yAxisRight.setGranularity(1f);
         yAxisRight.setAxisMinimum(0f);
+        yAxisRight.setAxisMaximum(4.5f);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(c);
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
-                new DividerItemDecoration(getActivity(), layoutManager.getOrientation());
+                new DividerItemDecoration(c, layoutManager.getOrientation());
         myLegend.addItemDecoration(dividerItemDecoration);
         myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;
@@ -433,11 +436,12 @@ public class AggregateReportFragment extends Fragment implements
 
     @Override
     public boolean onItemLongClick(int position) {
-        if (getActivity() == null) { return false; }
+        Context c = getActivity();
+        if (c == null) { return false; }
         if (isInCategoryView()) {
             ChartLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
             myExecutor.execute(()->{
-                AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+                AppDao dao = AppDatabase.getAppDatabase(c).appDao();
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
                         dao.getAppUsage(legendInfo.getSubTitle()),
@@ -507,6 +511,7 @@ public class AggregateReportFragment extends Fragment implements
 
     @Override
     public void onDurationConfirmed(String packageName, long duration) {
+        if (getActivity() == null) return;
         Runnable postSaveRunnable = () -> myHandler.post(() -> {
             if (getActivity() != null) {
                 Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show();

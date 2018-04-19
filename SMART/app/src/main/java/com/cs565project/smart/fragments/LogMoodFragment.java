@@ -12,11 +12,13 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.util.EmotionUtil;
+import com.cs565project.smart.util.PreferencesHelper;
 import com.google.android.cameraview.CameraView;
 
 import java.util.Arrays;
@@ -34,6 +36,8 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
     private CameraView           myCameraView;
     private RadioGroup           myMoodRadios;
     private FloatingActionButton myTakePicBtn;
+    private RadioButton          myCameraRadio;
+    private RadioGroup           myInputTypeGroup;
 
     private EmotionUtil myEmotionUtil;
 
@@ -70,10 +74,11 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
         myTakePicBtn = root.findViewById(R.id.take_pic);
         myTakePicBtn.setOnClickListener(myOnClickListener);
 
-        RadioGroup inputTypeGroup = root.findViewById(R.id.radio_group);
+        myInputTypeGroup = root.findViewById(R.id.radio_group);
         myMoodRadios = root.findViewById(R.id.mood_level_radios);
-        inputTypeGroup.setOnCheckedChangeListener(this);
-        inputTypeGroup.check(R.id.take_photo_radio);
+        myInputTypeGroup.setOnCheckedChangeListener(this);
+        myInputTypeGroup.check(R.id.take_photo_radio);
+        myCameraRadio = root.findViewById(R.id.take_photo_radio);
         myMoodRadios.setOnCheckedChangeListener(this);
         return root;
     }
@@ -83,7 +88,16 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
         super.onResume();
 //        FragmentCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
 //                    REQUEST_CAMERA_PERMISSION);
-        myCameraView.start();
+        if (PreferencesHelper.getBoolPreference(getActivity(),
+                GeneralSettingsFragment.PREF_ALLOW_PICTURES.getKey(), true)) {
+            myCameraView.setVisibility(View.VISIBLE);
+            myCameraView.start();
+            myCameraRadio.setEnabled(true);
+        } else {
+            myCameraView.setVisibility(View.GONE);
+            myCameraRadio.setEnabled(false);
+            myInputTypeGroup.check(R.id.enter_manual_radio);
+        }
     }
 
     @Override

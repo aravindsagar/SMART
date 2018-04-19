@@ -8,9 +8,9 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
+        <!--<TextView
             android:id="@+id/settingsEmail"
-            style="@style/SettingsHeaderStyle" />
+            style="@style/SettingsHeaderStyle" />-->
 
         <TextView android:text="@string/app_blocking"
             style="@style/SettingsHeaderStyle"/>

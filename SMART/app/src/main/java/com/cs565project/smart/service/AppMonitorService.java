@@ -22,9 +22,11 @@ import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.fragments.GeneralSettingsFragment;
 import com.cs565project.smart.recommender.NewsItem;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.PreferencesHelper;
 import com.cs565project.smart.util.UsageStatsUtil;
 
 import java.util.Date;
@@ -40,6 +42,7 @@ public class AppMonitorService extends Service {
     public static final String ACTION_START_SERVICE = "start_service";
     public static final String ACTION_STOP_SERVICE = "stop_service";
     public static final String ACTION_TOGGLE_SERVICE = "toggle_service";
+    public static final String KEY_SERVICE_RUNNING = "service_running";
 
     private static final int CYCLE_DELAY = 200;
     private static final int DATA_UPDATE_DELAY = 60000;
@@ -174,6 +177,7 @@ public class AppMonitorService extends Service {
 
     private void stop() {
         isRunning = false;
+        PreferencesHelper.setPreference(this, KEY_SERVICE_RUNNING, false);
         myHandler.removeCallbacks(myBgJobStarter);
         myHandler.removeCallbacks(myDbJobStarter);
         myHandler.removeCallbacks(myNewsJobStarter);
@@ -185,6 +189,7 @@ public class AppMonitorService extends Service {
         }
 
         isRunning = true;
+        PreferencesHelper.setPreference(this, KEY_SERVICE_RUNNING, true);
         myHandler.post(myBgJobStarter);
         myHandler.post(myDbJobStarter);
         myHandler.post(myNewsJobStarter);
@@ -217,6 +222,10 @@ public class AppMonitorService extends Service {
     }
 
     private boolean shouldBlockApp(String packageName) {
+        if (!PreferencesHelper.getBoolPreference(this,
+                GeneralSettingsFragment.PREF_ALLOW_APP_BLOCK.getKey(), true)) {
+            return false;
+        }
         AppDao dao = AppDatabase.getAppDatabase(AppMonitorService.this).appDao();
         AppDetails details = dao.getAppDetails(packageName);
         DailyAppUsage appUsage = dao.getAppUsage(packageName, new Date(UsageStatsUtil.getStartOfDayMillis(new Date())));
@@ -230,7 +239,7 @@ public class AppMonitorService extends Service {
 
         private Runnable bgJob;
 
-        public BgStarter(Runnable bgJob) {
+        BgStarter(Runnable bgJob) {
             this.bgJob = bgJob;
         }
 

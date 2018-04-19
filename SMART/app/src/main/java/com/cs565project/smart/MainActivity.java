@@ -3,6 +3,7 @@ package com.cs565project.smart;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -35,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String KEY_FIRST_START = "firstStart";
 
     private DrawerLayout myDrawer;
+    private TextView myToggleButton;
+    private boolean isServiceRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,12 +101,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Setup the menu items inside the nav drawer. Going with individual elements instead of a
         // menu since this will allow easier dynamic changes.
+        isServiceRunning = PreferencesHelper.getBoolPreference(this, AppMonitorService.KEY_SERVICE_RUNNING, true);
         TextView logout = findViewById(R.id.logout),
-                settings = findViewById(R.id.settings),
-                toggleService = findViewById(R.id.toggle_service);
+                settings = findViewById(R.id.settings);
+        myToggleButton = findViewById(R.id.toggle_service);
         logout.setOnClickListener(this);
         settings.setOnClickListener(this);
-        toggleService.setOnClickListener(this);
+        myToggleButton.setOnClickListener(this);
+        setToggleDrawable();
+    }
+
+    private void setToggleDrawable() {
+        Drawable toggleDrawable;
+        if (isServiceRunning) {
+            toggleDrawable = getDrawable(R.drawable.ic_pause);
+            myToggleButton.setText(R.string.pause_service);
+        } else {
+            toggleDrawable = getDrawable(R.drawable.ic_play_arrow);
+            myToggleButton.setText(R.string.resume_service);
+        }
+        myToggleButton.setCompoundDrawablesWithIntrinsicBounds(toggleDrawable, null, null, null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isServiceRunning = PreferencesHelper.getBoolPreference(this, AppMonitorService.KEY_SERVICE_RUNNING, true);
+
+        TabLayout tabLayout = findViewById(R.id.tabs);
+        TabLayout.Tab tab = tabLayout.getTabAt(1);
     }
 
     @Override
@@ -122,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startService(new Intent(this, AppMonitorService.class)
                         .setAction(AppMonitorService.ACTION_TOGGLE_SERVICE));
                 myDrawer.closeDrawer(GravityCompat.START);
+                isServiceRunning = !isServiceRunning;
+                setToggleDrawable();
                 break;
         }
     }

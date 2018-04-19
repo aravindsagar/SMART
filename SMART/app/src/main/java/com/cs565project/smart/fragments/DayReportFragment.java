@@ -105,11 +105,11 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
     private Runnable loadData = new Runnable() {
         @Override
         public void run() {
-
-            if (getActivity() == null) return;
+            Context c = getActivity();
+            if (c == null) return;
 
             // Read usage info from DB.
-            AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
+            AppDao dao = AppDatabase.getAppDatabase(c).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(new Date(UsageStatsUtil.getStartOfDayMillis(myDate)));
 
             // This map will hold the key value pairs to be inserted in the chart.
@@ -123,8 +123,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
             // Populate the usageMap.
             for (DailyAppUsage appUsage : appUsages) {
-                if (getActivity() == null) return;
-                if (getActivity().getPackageName().equals(appUsage.getPackageName())) { continue; }
+                if (c.getPackageName().equals(appUsage.getPackageName())) { continue; }
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
@@ -150,7 +149,6 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 }
             }
 
-            if (getActivity() == null) return;
             List<PieEntry> entries = processUsageMap(usageMap, subtitleInfo, isInSecondaryView(), !isInSecondaryView());
             PieDataSet dataSet = new PieDataSet(entries, "App usage");
             dataSet.setColors(PIE_COLORS);
@@ -178,8 +176,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
             // Output list.
             List<PieEntry> entries = new ArrayList<>();
-            if (getActivity() == null) { return entries; }
             Context context = getActivity();
+            if (context == null) { return entries; }
 
             // Add to output in the descending order of keys in the usageMap.
             List<String> keys = new ArrayList<>(usageMap.keySet());
@@ -228,7 +226,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
     private Runnable postLoadData = new Runnable() {
         @Override
         public void run() {
-            if (getActivity() == null) {
+            Context context = getActivity();
+            if (context == null) {
                 return;
             }
 
@@ -246,7 +245,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
             // The center text shows duration, the current category being viewed, and the recorded mood.
             SpannableString centerTextDuration =
-                    new SpannableString(UsageStatsUtil.formatDuration(myTotalUsageTime, getActivity()));
+                    new SpannableString(UsageStatsUtil.formatDuration(myTotalUsageTime, context));
             centerTextDuration.setSpan(new RelativeSizeSpan(1.4f), 0, centerTextDuration.length(), 0);
             centerTextDuration.setSpan(new StyleSpan(Typeface.BOLD), 0, centerTextDuration.length(), 0);
             String centerTextCategory = (isInSecondaryView()) ?
@@ -267,7 +266,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
             // Update the chart legend.
             ChartLegendAdapter adapter = (ChartLegendAdapter) myLegend.getAdapter();
             if (adapter == null) {
-                adapter = new ChartLegendAdapter(myLegendInfos, myTotalUsageTime, getActivity(), DayReportFragment.this);
+                adapter = new ChartLegendAdapter(myLegendInfos, myTotalUsageTime, context, DayReportFragment.this);
                 myLegend.setAdapter(adapter);
             } else {
                 adapter.setData(myLegendInfos, myTotalUsageTime);
@@ -363,7 +362,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupPieAndLegendView() {
-        if (getActivity() == null) return;
+        Context context = getActivity();
+        if (context == null) return;
         for (PieChart pieChart : Arrays.asList(myPieChart, myPieChartSecondary)) {
             pieChart.getDescription().setEnabled(false);
             pieChart.getLegend().setEnabled(false);
@@ -383,10 +383,10 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
             return existingPieListener.onTouch(v, event);
         });
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         myLegend.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration =
-                new DividerItemDecoration(getActivity(), layoutManager.getOrientation());
+                new DividerItemDecoration(context, layoutManager.getOrientation());
         myLegend.addItemDecoration(dividerItemDecoration);
         myLegend.setItemAnimator(new DefaultItemAnimator());
         assert getArguments() != null;
@@ -408,6 +408,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
         if (isInSecondaryView()) {
             ChartLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
             myExecutor.execute(()->{
+                if (getActivity() == null) return;
                 AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
@@ -474,8 +475,12 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
     @Override
     public void onDurationConfirmed(String packageName, long duration) {
-        Runnable postSaveRunnable = () -> myHandler.post(() ->
-                Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show());
+        if (getActivity() == null) return;
+        Runnable postSaveRunnable = () -> myHandler.post(() -> {
+            if (getActivity() != null) {
+                Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show();
+            }
+        });
         myExecutor.execute(new DbUtils.SaveRestrictionToDb(getActivity(), packageName, (int) duration,
                 postSaveRunnable));
     }

@@ -64,5 +64,7 @@
     <string name="emotion_level_1">☹️</string>
     <string name="restricted_val">Restricted: %s</string>
     <string name="recommended_val">Recommended: %s</string>
+    <string name="resume_service">Resume SMART</string>
+    <string name="app_blocking_disabled">App blocking is disabled</string>
 
 </resources>

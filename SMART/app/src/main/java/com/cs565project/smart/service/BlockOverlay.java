@@ -21,8 +21,10 @@ import android.widget.TextView;
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.fragments.GeneralSettingsFragment;
 import com.cs565project.smart.recommender.NewsItem;
 import com.cs565project.smart.util.EmotionUtil;
+import com.cs565project.smart.util.PreferencesHelper;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.google.android.cameraview.CameraView;
 
@@ -121,12 +123,25 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         rootView.setOnTouchListener(this);
         detailsButton.setOnClickListener(this);
 
+        if (PreferencesHelper.getBoolPreference(getContext(),
+                GeneralSettingsFragment.PREF_ALLOW_BLOCK_BYPASS.getKey(), true)) {
+            continueButton.setVisibility(View.VISIBLE);
+        } else {
+            continueButton.setVisibility(View.GONE);
+        }
+
         try {
             CameraView cameraView = rootView.findViewById(R.id.overlay_camera_view);
             if (cameraView != null) {
-                cameraView.setFacing(CameraView.FACING_FRONT);
-                cameraView.addCallback(myCameraCallback);
-                cameraView.start();
+                if (PreferencesHelper.getBoolPreference(getContext(),
+                        GeneralSettingsFragment.PREF_ALLOW_PICTURES.getKey(), true)) {
+                    cameraView.setVisibility(View.VISIBLE);
+                    cameraView.setFacing(CameraView.FACING_FRONT);
+                    cameraView.addCallback(myCameraCallback);
+                    cameraView.start();
+                } else {
+                    cameraView.setVisibility(View.GONE);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
