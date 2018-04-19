@@ -4,6 +4,7 @@ package com.cs565project.smart.fragments;
 import android.animation.TimeInterpolator;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -37,8 +38,8 @@ import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
-import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.DbUtils;
+import com.cs565project.smart.util.EmotionUtil;
 import com.cs565project.smart.util.GraphUtil;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.mikephil.charting.animation.Easing;
@@ -105,6 +106,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
         @Override
         public void run() {
 
+            if (getActivity() == null) return;
+
             // Read usage info from DB.
             AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(new Date(UsageStatsUtil.getStartOfDayMillis(myDate)));
@@ -120,10 +123,13 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
             // Populate the usageMap.
             for (DailyAppUsage appUsage : appUsages) {
+                if (getActivity() == null) return;
+                if (getActivity().getPackageName().equals(appUsage.getPackageName())) { continue; }
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
 //                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
+
 
                 if (usageMap.containsKey(category)) {
                     usageMap.put(category, usageMap.get(category) + appUsage.getDailyUseTime());
@@ -172,6 +178,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
 
             // Output list.
             List<PieEntry> entries = new ArrayList<>();
+            if (getActivity() == null) { return entries; }
+            Context context = getActivity();
 
             // Add to output in the descending order of keys in the usageMap.
             List<String> keys = new ArrayList<>(usageMap.keySet());
@@ -185,14 +193,14 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 if (isSecondaryData) {
                     // In PER_CATEGORY state, usageMap is keyed using package names, but we want to
                     // show app name as the title in chart. package name will be the subtitle.
-                    AppInfo appInfo = new AppInfo(key, getActivity());
+                    AppInfo appInfo = new AppInfo(key, context);
                     title = appInfo.getAppName();
                     subTitle = key;
                     icon = appInfo.getAppIcon();
                 } else {
                     // In TOTAL state, the categories are the titles, and apps in them are the subtitles.
                     title = key;
-                    subTitle = GraphUtil.buildSubtitle(getActivity(), subtitleInfo.get(key));
+                    subTitle = GraphUtil.buildSubtitle(context, subtitleInfo.get(key));
                 }
 
                 // We want to limit the number of entries in the chart.
@@ -403,7 +411,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
-                        dao.getAppUsage(legendInfo.getSubTitle())
+                        dao.getAppUsage(legendInfo.getSubTitle()),
+                        dao.getAllMoodLog()
                 );
                 myHandler.post(() -> {
                     SetRestrictionFragment

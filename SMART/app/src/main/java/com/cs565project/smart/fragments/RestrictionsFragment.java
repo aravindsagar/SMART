@@ -2,6 +2,7 @@ package com.cs565project.smart.fragments;
 
 
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -18,9 +19,9 @@ import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.fragments.adapter.RestrictionsAdapter;
+import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
-import com.cs565project.smart.recommender.RestrictionRecommender;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +42,8 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
     private SwipeRefreshLayout mySwipeRefreshLayout;
 
     // Our state.
-    List<AppDetails> restrictedApps, recommendedApps, otherApps;
+    List<AppDetails> restrictedApps, otherApps;
+    List<Integer> recommendations;
     Map<String, AppInfo> appInfo;
 
     // Helper fields.
@@ -53,31 +55,26 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
         @Override
         public void run() {
             if (getActivity() == null) return;
+            Context c = getActivity();
 
             AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
 
             restrictedApps = new ArrayList<>();
-            recommendedApps = new ArrayList<>();
             otherApps = new ArrayList<>();
             appInfo = new HashMap<>();
+            recommendations = new ArrayList<>();
 
             for (AppDetails appDetails : dao.getAppDetails()) {
                 appInfo.put(appDetails.getPackageName(), new AppInfo(appDetails.getPackageName(), getActivity()));
-                if (appDetails.getThresholdTime() >= 0) {
+
+                int recommendation = RestrictionRecommender.recommendRestriction(
+                        appDetails, dao.getAppUsage(appDetails.getPackageName()), dao.getAllMoodLog());
+                if (!c.getPackageName().equals(appDetails.getPackageName()) &&
+                        (appDetails.getThresholdTime() >= 0 || recommendation > 0)) {
                     restrictedApps.add(appDetails);
+                    recommendations.add(recommendation);
                 } else {
-                    int recommendation = RestrictionRecommender.recommendRestriction(
-                            appDetails, dao.getAppUsage(appDetails.getPackageName()));
-                    if (recommendation >= 0) {
-                        recommendedApps.add(new AppDetails(
-                                appDetails.getPackageName(),
-                                appDetails.getAppName(),
-                                appDetails.getCategory(),
-                                recommendation
-                        ));
-                    } else {
-                        otherApps.add(appDetails);
-                    }
+                    otherApps.add(appDetails);
                 }
             }
 
@@ -91,8 +88,8 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
         public void run() {
             if (getActivity() == null) return;
 
-            myAppList.setAdapter(new RestrictionsAdapter(restrictedApps, recommendedApps, otherApps,
-                    appInfo, RestrictionsFragment.this));
+            myAppList.setAdapter(new RestrictionsAdapter(restrictedApps, otherApps, appInfo,
+                    recommendations, RestrictionsFragment.this));
             myAppList.invalidate();
 
             mySwipeRefreshLayout.setRefreshing(false);

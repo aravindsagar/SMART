@@ -42,11 +42,9 @@
     <string name="log_my_mood">Take a selfie!</string>
     <string name="mood">Feeling</string>
     <string name="others">Others</string>
-    <string name="restricted_apps">Restricted apps</string>
+    <string name="restricted_apps">Restrictions and recommendations</string>
     <string name="rec_restrictions">Recommended restrictions</string>
     <string name="other_apps">Other apps</string>
-    <string name="restricted">Restricted</string>
-    <string name="recommended">Recommended</string>
     <string name="swipe_down_for_more_options">Swipe down for more options</string>
     <string name="usage_limit_reached">Usage limit reached: %s</string>
     <string name="your_newsfeed">Your newsfeed</string>
@@ -64,5 +62,7 @@
     <string name="emotion_level_3">😐</string>
     <string name="emotion_level_2">😕</string>
     <string name="emotion_level_1">☹️</string>
+    <string name="restricted_val">Restricted: %s</string>
+    <string name="recommended_val">Recommended: %s</string>
 
 </resources>

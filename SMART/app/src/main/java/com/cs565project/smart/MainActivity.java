@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
-
                 //  Create a new boolean and preference and set it to true
                 boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
 
@@ -63,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     });
 
                     //  Edit preference to make it false because we don't want this to run again
-//                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, false);
+                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, false);
                 }
             }
         });

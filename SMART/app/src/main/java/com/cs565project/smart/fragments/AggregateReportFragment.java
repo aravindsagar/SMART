@@ -106,7 +106,7 @@ public class AggregateReportFragment extends Fragment implements
     private Runnable loadData = new Runnable() {
         @Override
         public void run() {
-
+            if (getActivity() == null) return;
             // Read usage info from DB.
             AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
             List<DailyAppUsage> appUsages = dao.getAppUsage(myStartDate, myEndDate);
@@ -126,6 +126,9 @@ public class AggregateReportFragment extends Fragment implements
 
             // Populate the usageMap.
             for (DailyAppUsage appUsage : appUsages) {
+                if (getActivity() == null) return;
+                if (getActivity().getPackageName().equals(appUsage.getPackageName())) { continue; }
+
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
 
@@ -227,6 +230,7 @@ public class AggregateReportFragment extends Fragment implements
 
             // Output list.
             List<BarEntry> entries = new ArrayList<>(usageData.size());
+            if (getActivity() == null) { return entries; }
 
             for (int i = 0; i < usageData.size(); i++) {
                 Map<String, Long> usageMap = usageData.get(i);
@@ -398,7 +402,7 @@ public class AggregateReportFragment extends Fragment implements
         yAxisRight.setValueFormatter((v, a) -> myEmotionUtil.getEmoji((int) v));
         yAxisRight.setDrawGridLines(false);
         yAxisRight.setGranularity(1f);
-        yAxisRight.setAxisMinimum(-1f);
+        yAxisRight.setAxisMinimum(0f);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         myLegend.setLayoutManager(layoutManager);
@@ -429,13 +433,15 @@ public class AggregateReportFragment extends Fragment implements
 
     @Override
     public boolean onItemLongClick(int position) {
+        if (getActivity() == null) { return false; }
         if (isInCategoryView()) {
             ChartLegendAdapter.LegendInfo legendInfo = myLegendInfos.get(position);
             myExecutor.execute(()->{
                 AppDao dao = AppDatabase.getAppDatabase(getActivity()).appDao();
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
-                        dao.getAppUsage(legendInfo.getSubTitle())
+                        dao.getAppUsage(legendInfo.getSubTitle()),
+                        dao.getAllMoodLog()
                 );
                 myHandler.post(() -> SetRestrictionFragment
                         .newInstance(legendInfo.getTitle(), legendInfo.getSubTitle(), thresholdTime)
@@ -501,8 +507,11 @@ public class AggregateReportFragment extends Fragment implements
 
     @Override
     public void onDurationConfirmed(String packageName, long duration) {
-        Runnable postSaveRunnable = () -> myHandler.post(() ->
-                Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show());
+        Runnable postSaveRunnable = () -> myHandler.post(() -> {
+            if (getActivity() != null) {
+                Toast.makeText(getActivity(), "Restriction saved", Toast.LENGTH_SHORT).show();
+            }
+        });
         myExecutor.execute(new DbUtils.SaveRestrictionToDb(getActivity(), packageName, (int) duration,
                 postSaveRunnable));
     }

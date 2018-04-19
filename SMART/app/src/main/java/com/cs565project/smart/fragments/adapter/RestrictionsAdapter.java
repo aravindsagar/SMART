@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,28 +22,25 @@ import static android.view.View.GONE;
 
 public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapter.ViewHolder> {
 
-    private List<AppDetails> restrictedApps, recommendedApps, otherApps;
+    private List<AppDetails> restrictedApps, otherApps;
     private Map<String, AppInfo> appInfo;
+    private List<Integer> recommendations;
 
-    private int restrictedHeaderPos, recommendedHeaderPos, otherHeaderPos;
+    private int restrictedHeaderPos, otherHeaderPos;
 
     private OnItemSelectedListener listener;
 
-    public RestrictionsAdapter(List<AppDetails> restrictedApps, List<AppDetails> recommendedApps,
-                               List<AppDetails> otherApps, Map<String, AppInfo> appInfo,
+    public RestrictionsAdapter(List<AppDetails> restrictedApps, List<AppDetails> otherApps,
+                               Map<String, AppInfo> appInfo, List<Integer> recommendations,
                                OnItemSelectedListener listener) {
         this.restrictedApps = restrictedApps;
-        this.recommendedApps = recommendedApps;
+        this.recommendations = recommendations;
         this.otherApps = otherApps;
         this.appInfo = appInfo;
         this.listener = listener;
 
         restrictedHeaderPos = restrictedApps.size() > 0 ? 0 : -1;
-        recommendedHeaderPos = restrictedHeaderPos + restrictedApps.size() +
-                (recommendedApps.size() > 0 ? 1 : 0);
-        otherHeaderPos = recommendedHeaderPos + recommendedApps.size() + 1;
-        Log.d("restrictions", restrictedHeaderPos + ", " + recommendedHeaderPos + ", " + otherHeaderPos);
-        Log.d("restrictions", restrictedApps.size() + ", " + recommendedApps.size() + ", " + otherApps.size());
+        otherHeaderPos = restrictedHeaderPos + restrictedApps.size() + 1;
     }
 
     @NonNull
@@ -63,46 +59,36 @@ public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapte
                 populateHeaderItem(holder, R.string.restricted_apps);
             } else {
                 populateAppItem(holder, restrictedApps.get(position - restrictedHeaderPos - 1),
-                        c.getString(R.string.restricted));
-            }
-        } else if (position <= recommendedApps.size() + recommendedHeaderPos) {
-            if (restrictedHeaderPos == position) {
-                populateHeaderItem(holder, R.string.rec_restrictions);
-            } else {
-                populateAppItem(holder, recommendedApps.get(position - recommendedHeaderPos - 1),
-                        c.getString(R.string.recommended));
+                        recommendations.get(position - restrictedHeaderPos - 1));
             }
         } else {
             if (otherHeaderPos == position) {
                 populateHeaderItem(holder, R.string.other_apps);
             } else {
-                populateAppItem(holder, otherApps.get(position - otherHeaderPos - 1),
-                        null);
+                populateAppItem(holder, otherApps.get(position - otherHeaderPos - 1), -1);
             }
         }
     }
 
     @Override
     public int getItemCount() {
-        return restrictedApps.size() + recommendedApps.size() + otherApps.size() +
-                (restrictedApps.size() > 0 ? 1 : 0) + (recommendedApps.size() > 0 ? 1 : 0) +
+        return restrictedApps.size() + otherApps.size() + (restrictedApps.size() > 0 ? 1 : 0) +
                 (otherApps.size() > 0 ? 1 : 0);
     }
 
     private void populateHeaderItem(ViewHolder holder, int titleId) {
         holder.icon.setVisibility(GONE);
         holder.subtitle.setVisibility(GONE);
-        holder.restrictionTitle.setVisibility(GONE);
-        holder.restrictionValue.setVisibility(GONE);
+        holder.restrictionText.setVisibility(GONE);
+        holder.recommendationText.setVisibility(GONE);
 
         holder.title.setText(titleId);
         holder.title.setTextAppearance(holder.itemView.getContext(), R.style.SettingsHeaderStyle);
     }
 
-    private void populateAppItem(ViewHolder holder, AppDetails appDetails, String recommendationHeader) {
+    private void populateAppItem(ViewHolder holder, AppDetails appDetails, int recommendation) {
         AppInfo info = appInfo.get(appDetails.getPackageName());
-        String restrictionDuration =
-                UsageStatsUtil.formatDuration(appDetails.getThresholdTime(), holder.itemView.getContext());
+        Context  context = holder.itemView.getContext();
 
         holder.icon.setVisibility(View.VISIBLE);
         holder.icon.setImageDrawable(info.getAppIcon());
@@ -111,14 +97,20 @@ public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapte
         holder.subtitle.setVisibility(View.VISIBLE);
         holder.subtitle.setText(Html.fromHtml(appDetails.getCategory()));
 
-        if (recommendationHeader != null && !recommendationHeader.isEmpty()) {
-            holder.restrictionTitle.setVisibility(View.VISIBLE);
-            holder.restrictionValue.setVisibility(View.VISIBLE);
-            holder.restrictionTitle.setText(recommendationHeader);
-            holder.restrictionValue.setText(restrictionDuration);
+        if (appDetails.getThresholdTime() > -1) {
+            holder.restrictionText.setVisibility(View.VISIBLE);
+            holder.restrictionText.setText(String.format(context.getString(R.string.restricted_val),
+                    UsageStatsUtil.formatDuration(appDetails.getThresholdTime(), holder.itemView.getContext())));
         } else {
-            holder.restrictionTitle.setVisibility(GONE);
-            holder.restrictionValue.setVisibility(GONE);
+            holder.restrictionText.setVisibility(GONE);
+        }
+
+        if (recommendation > -1) {
+            holder.recommendationText.setVisibility(View.VISIBLE);
+            holder.recommendationText.setText(String.format(context.getString(R.string.recommended_val),
+                    UsageStatsUtil.formatDuration(recommendation, context)));
+        } else {
+            holder.recommendationText.setVisibility(GONE);
         }
 
         holder.itemView.setOnClickListener((v -> listener.onItemSelected(appDetails)));
@@ -127,15 +119,15 @@ public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapte
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         ImageView icon;
-        TextView title, subtitle, restrictionTitle, restrictionValue;
+        TextView title, subtitle, restrictionText, recommendationText;
 
         ViewHolder(View itemView) {
             super(itemView);
             icon = itemView.findViewById(R.id.restriction_app_icon);
             title = itemView.findViewById(R.id.restriction_title);
             subtitle = itemView.findViewById(R.id.restriction_subtitle);
-            restrictionTitle = itemView.findViewById(R.id.restriction_recommendation_title);
-            restrictionValue = itemView.findViewById(R.id.restriction_recommendation_value);
+            restrictionText = itemView.findViewById(R.id.restriction_text);
+            recommendationText = itemView.findViewById(R.id.recommendation_text);
         }
     }
 
