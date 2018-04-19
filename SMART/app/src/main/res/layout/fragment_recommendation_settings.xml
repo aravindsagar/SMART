@@ -1,7 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:gravity="center"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.PermissionsFragment"
@@ -10,73 +9,59 @@
     <!-- TODO: Update blank fragment layout -->
     <TextView
         style="@style/OnboardingTextViewStyle"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
         android:text="Select productive activities you would like to incorporate into your schedule:" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="14dp">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+
+        <ImageView
+            android:id="@+id/exercise_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:src="@drawable/run_icon"
+            android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/exercise_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/run_icon"
-                android:text="Exercise" />
-            <TextView
-                style="@style/OnboardingTextViewStyle"
-                android:text="Exercise"
-                android:layout_alignParentLeft="true" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/academics_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:src="@drawable/academics_icon"
+            android:layout_weight="1"/>
 
-            <ImageButton
-                android:id="@+id/academics_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/academics_icon" />
-            <TextView
-                style="@style/OnboardingTextViewStyle"
-                android:text="Academics" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/relax_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:src="@drawable/relax_icon"
+            android:layout_weight="1"/>
 
-            <ImageButton
-                android:id="@+id/relax_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/relax_icon" />
-            <TextView
-                style="@style/OnboardingTextViewStyle"
-                android:text="Academics" />
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/news_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_news"/>
+
     </LinearLayout>
 
     <ScrollView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/scroll_layout"
-            android:orientation="vertical">
-
+            android:orientation="vertical"
+            android:gravity="start">
 
         </LinearLayout>
     </ScrollView>

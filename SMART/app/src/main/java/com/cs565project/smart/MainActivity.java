@@ -3,9 +3,7 @@ package com.cs565project.smart;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
@@ -43,30 +41,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //  Declare a new thread to do a preference check
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
+        // Start our background service. Without this nothing will work!
+        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
 
-                //  Create a new boolean and preference and set it to true
-                boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
+        //  Declare a new thread to do a preference check and start intro activity if required.
+        Thread t = new Thread(() -> {
+            // TODO remove
+            PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
 
-                //  If the activity has never started before...
-                if (isFirstStart) {
+            //  Create a new boolean and preference and set it to true
+            boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
 
-                    //  Launch app intro
-                    final Intent i = new Intent(MainActivity.this, IntroActivity.class);
+            //  If the activity has never started before...
+            if (isFirstStart) {
 
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            startActivity(i);
-                        }
-                    });
+                //  Launch app intro
+                final Intent i = new Intent(MainActivity.this, IntroActivity.class);
 
-                    //  Edit preference to make it false because we don't want this to run again
-//                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, false);
-                }
+                runOnUiThread(() -> {
+                    startActivity(i);
+                    finish();
+                });
             }
         });
 
@@ -81,8 +76,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MainTabsAdapter adapter = new MainTabsAdapter(getFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
-
-        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
     }
 
     /**

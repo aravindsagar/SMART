@@ -64,5 +64,9 @@
     <string name="emotion_level_3">😐</string>
     <string name="emotion_level_2">😕</string>
     <string name="emotion_level_1">☹️</string>
+    <string name="app_monitoring">App Monitoring</string>
+    <string name="app_overlay">App Overlay</string>
+    <string name="camera">Camera</string>
+    <string name="external_storage">External Storage</string>
 
 </resources>

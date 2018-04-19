@@ -1,26 +1,36 @@
 package com.cs565project.smart.fragments;
 
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.cs565project.smart.R;
-import com.cs565project.smart.db.entities.RecommendationActivities;
-
-import org.w3c.dom.Text;
+import com.cs565project.smart.db.AppDatabase;
+import com.cs565project.smart.db.entities.RecommendationActivity;
+import com.cs565project.smart.util.PreferencesHelper;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import static com.cs565project.smart.recommender.ActivityRecommender.ACTIVITY_TYPE_ACADEMIC;
+import static com.cs565project.smart.recommender.ActivityRecommender.ACTIVITY_TYPE_EXERCISE;
+import static com.cs565project.smart.recommender.ActivityRecommender.ACTIVITY_TYPE_NEWS;
+import static com.cs565project.smart.recommender.ActivityRecommender.ACTIVITY_TYPE_RELAX;
+import static com.cs565project.smart.recommender.ActivityRecommender.KEY_DB_POPULATED;
 
 
 /**
@@ -28,116 +38,118 @@ import java.util.List;
  */
 
 
-public class RecommendationSettingsFragment extends Fragment {
-    View root;
+public class RecommendationSettingsFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+    private static final LinearLayout.LayoutParams CB_LAYOUT_PARAMS = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    static {
+        CB_LAYOUT_PARAMS.setMargins(50, 10, 50, 10);
+    }
 
-    public static List<RecommendationActivities> exerciseActivities = Arrays.asList(
-            new RecommendationActivities("Run", false, 7),
-            new RecommendationActivities("Bike", false, 7),
-            new RecommendationActivities("Hike", false, 3),
-            new RecommendationActivities("Yoga", false, 3),
-            new RecommendationActivities("Pilates", false, 3),
-            new RecommendationActivities("Weight Lift", false, 3),
-            new RecommendationActivities("Sport", false, 3)
-            );
+    private View root;
+    private List<ImageView> recommendationHeaders;
 
-    public static List<RecommendationActivities> academicActivities = Arrays.asList(
-            new RecommendationActivities("Study for courses", false, 7),
-            new RecommendationActivities("Read a book", false, 7),
-            new RecommendationActivities("Write in your journal", false, 12),
-            new RecommendationActivities("Create a program", false, 3),
-            new RecommendationActivities("Solve Puzzles", false, 3)
-    );
+    private List<RecommendationActivity> myExerciseActivities, myAcademicActivities, myRelaxActivites, myNewsTopics;
 
-    public static List<RecommendationActivities> relaxActivities = Arrays.asList(
-            new RecommendationActivities("Drink Tea", false, 7),
-            new RecommendationActivities("Talk with or hangout with Friend(s)", false, 15),
-            new RecommendationActivities("Meditate", false, 15),
-            new RecommendationActivities("Take a Nap", false, 3),
-            new RecommendationActivities("Massage", false, 3),
-            new RecommendationActivities("Go Outside", false, 3),
-            new RecommendationActivities("Stretch", false, 15)
-            );
+    private Handler myUIHandler = new Handler();
+    private Executor myExecutor = Executors.newSingleThreadExecutor();
 
+    private Runnable fetchActivityData = new Runnable() {
+        @Override
+        public void run() {
+            Context c = getActivity();
+            if (c == null) return;
+
+            AppDatabase db = AppDatabase.getAppDatabase(c);
+            if (!PreferencesHelper.getBoolPreference(c, KEY_DB_POPULATED, false)) {
+                db.insertDefaultActivitiesIntoDb();
+                PreferencesHelper.setPreference(c, KEY_DB_POPULATED, true);
+            }
+
+            myExerciseActivities = db.appDao().getRecommendationActivities(ACTIVITY_TYPE_EXERCISE);
+            myAcademicActivities = db.appDao().getRecommendationActivities(ACTIVITY_TYPE_ACADEMIC);
+            myRelaxActivites = db.appDao().getRecommendationActivities(ACTIVITY_TYPE_RELAX);
+            myNewsTopics = db.appDao().getRecommendationActivities(ACTIVITY_TYPE_NEWS);
+
+            myUIHandler.post(() -> {
+                for (ImageView view : recommendationHeaders) {
+                    Log.d("Rec", "Setting onclick" + myExerciseActivities.size());
+                    view.setOnClickListener(RecommendationSettingsFragment.this);
+                }
+            });
+        }
+    };
 
     public RecommendationSettingsFragment() {
         // Required empty public constructor
     }
 
-    private CheckBox createActivityElement(RecommendationActivities activity) {
-        CheckBox newCB = new CheckBox(getContext());
-        newCB.setText(activity.activityName);
-        newCB.setOnCheckedChangeListener(checkboxListener);
-        return newCB;
+    private void populateActivityList(List<RecommendationActivity> activities) {
+        LinearLayout myActivitiesList = root.findViewById(R.id.scroll_layout);
+        myActivitiesList.removeAllViews();
+        for (RecommendationActivity activity : activities) {
+            CheckBox newCB = new CheckBox(getContext());
+            newCB.setText(activity.activityName);
+            newCB.setChecked(activity.isSet);
+            newCB.setOnCheckedChangeListener(this);
+            newCB.setTag(activity);
+            myActivitiesList.addView(newCB, CB_LAYOUT_PARAMS);
+        }
     }
-
-    private View.OnClickListener exerciseListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.scroll_layout);
-            linearLayout.removeAllViews();
-            for(int i = 0; i < exerciseActivities.size(); i++) {
-                linearLayout.addView(createActivityElement(exerciseActivities.get(i)));
-            }
-        }
-    };
-
-    private View.OnClickListener academicsListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.scroll_layout);
-            linearLayout.removeAllViews();
-            for(int i = 0; i < academicActivities.size(); i++) {
-                linearLayout.addView(createActivityElement(academicActivities.get(i)));
-            }
-        }
-    };
-
-    private View.OnClickListener relaxListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.scroll_layout);
-            linearLayout.removeAllViews();
-            for(int i = 0; i < relaxActivities.size(); i++) {
-                linearLayout.addView(createActivityElement(relaxActivities.get(i)));
-            }
-        }
-    };
-
-    private CompoundButton.OnCheckedChangeListener checkboxListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if(isChecked) {
-                Toast.makeText(getContext(), buttonView.getText(), Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(getContext(), buttonView.getText(), Toast.LENGTH_SHORT).show();
-            }
-
-        }
-
-
-//        public void o(View v) {
-//            boolean checked = ((CheckBox) root).isChecked();
-//            if(checked) {
-//                Toast.makeText(getContext(), "Checkbox Checked", Toast.LENGTH_SHORT).show();
-//            }
-//            else {
-//                Toast.makeText(getContext(), "Checkbox Not Checked", Toast.LENGTH_SHORT).show();
-//            }
-//        }
-    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         root = inflater.inflate(R.layout.fragment_recommendation_settings, container, false);
-        ImageButton exercise = root.findViewById(R.id.exercise_button);
-        ImageButton academics = root.findViewById(R.id.academics_button);
-        ImageButton relax = root.findViewById(R.id.relax_button);
+        ImageView exercise = root.findViewById(R.id.exercise_button),
+                academics = root.findViewById(R.id.academics_button),
+                relax = root.findViewById(R.id.relax_button),
+                news = root.findViewById(R.id.news_button);
 
-        exercise.setOnClickListener(exerciseListener);
-        academics.setOnClickListener(academicsListener);
-        relax.setOnClickListener(relaxListener);
+        recommendationHeaders = Arrays.asList(exercise, academics, relax, news);
+        myExecutor.execute(fetchActivityData);
         return root;
     }
 
+    @Override
+    public void onClick(View v) {
+        Context c = getActivity();
+        if (c == null) return;
+
+        if (v instanceof ImageView) {
+            for (ImageView view : recommendationHeaders) {
+                view.setImageTintList(null);
+            }
+
+            ((ImageView) v).setImageTintList(c.getResources().getColorStateList(R.color.image_selected));
+        }
+
+        switch (v.getId()) {
+            case R.id.exercise_button:
+                populateActivityList(myExerciseActivities);
+                break;
+            case R.id.academics_button:
+                populateActivityList(myAcademicActivities);
+                break;
+            case R.id.relax_button:
+                populateActivityList(myRelaxActivites);
+                break;
+            case R.id.news_button:
+                populateActivityList(myNewsTopics);
+                break;
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        Object tag = buttonView.getTag();
+        if (tag == null || !(tag instanceof RecommendationActivity)) return;
+        RecommendationActivity activity = (RecommendationActivity) buttonView.getTag();
+        activity.isSet = isChecked;
+        myExecutor.execute(() -> {
+            Context c = getContext();
+            if (c == null) return;
+            AppDatabase.getAppDatabase(c).appDao().updateRecommendationActivity(activity);
+        });
+    }
 }

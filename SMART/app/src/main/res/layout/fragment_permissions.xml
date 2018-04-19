@@ -15,37 +15,25 @@
         android:layout_height="wrap_content"
         android:text="Logo?"
         android:layout_marginBottom="20dp"
-        android:textColor="@color/primaryTextColor"
-        />
+        android:textColor="@color/primaryTextColor" />
 
     <TextView
-
-        android:text="@string/permissions_fragment"
-        android:layout_marginBottom="20dp"
         style="@style/OnboardingTextViewStyle"
-        />
+        android:text="@string/permissions_fragment"
+        android:layout_marginBottom="20dp" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
-        >
+        android:layout_marginBottom="10dp">
 
         <Button
             android:id="@+id/usageEnableButton"
-            android:layout_marginLeft="15dp"
-            style="@style/OnboardingButtonStyle"
-
-            android:layout_marginRight="100dp"
-            android:text="App Monitoring" />
+            style="@style/OnboardingPermissionButtonStyle"
+            android:text="@string/app_monitoring" />
         <TextView
-            android:id="@+id/appMonitoringEnabledText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/primaryTextColor"
-            android:textSize="17dp"
-            android:layout_alignParentRight="true"
-            />
+            style="@style/OnboardingPermissionTextStyle"
+            android:id="@+id/appMonitoringEnabledText" />
 
     </LinearLayout>
 
@@ -53,26 +41,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
-        >
+        android:layout_marginBottom="10dp">
 
         <Button
             android:id="@+id/overlayEnableButton"
-            android:layout_marginLeft="15dp"
-            style="@style/OnboardingButtonStyle"
-            android:layout_marginRight="100dp"
-            android:paddingLeft="29dp"
-            android:paddingRight="29dp"
-            android:text="App Overlay"
-            />
+            style="@style/OnboardingPermissionButtonStyle"
+            android:text="@string/app_overlay" />
         <TextView
-            android:id="@+id/overlayEnabledText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/primaryTextColor"
-            android:textSize="17dp"
-            android:layout_alignParentRight="true"
-            />
+            style="@style/OnboardingPermissionTextStyle"
+            android:id="@+id/overlayEnabledText" />
 
     </LinearLayout>
 
@@ -80,26 +57,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
-        >
+        android:layout_marginBottom="10dp">
 
         <Button
             android:id="@+id/cameraEnableButton"
-            android:layout_marginLeft="15dp"
-            style="@style/OnboardingButtonStyle"
-
-            android:layout_marginRight="100dp"
-            android:text="Camera"
-            android:paddingLeft="48dp"
-            android:paddingRight="48dp"/>
+            style="@style/OnboardingPermissionButtonStyle"
+            android:text="@string/camera"/>
         <TextView
             android:id="@+id/cameraEnabledText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/primaryTextColor"
-            android:textSize="17dp"
-            android:layout_alignParentRight="true"
-            />
+            style="@style/OnboardingPermissionTextStyle" />
 
     </LinearLayout>
 
@@ -107,26 +73,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
-        >
+        android:layout_marginBottom="10dp">
 
         <Button
             android:id="@+id/externalStorageEnableButton"
-            android:layout_marginLeft="15dp"
-            style="@style/OnboardingButtonStyle"
-
-            android:layout_marginRight="100dp"
-            android:text="External Storage"
-            android:paddingLeft="7dp"
-            android:paddingRight="7dp"/>
+            style="@style/OnboardingPermissionButtonStyle"
+            android:text="@string/external_storage"/>
         <TextView
             android:id="@+id/externalStorageEnabledText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/primaryTextColor"
-            android:textSize="17dp"
-            android:layout_alignParentRight="true"
-            />
+            style="@style/OnboardingPermissionTextStyle" />
 
     </LinearLayout>
 
