@@ -44,28 +44,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //  Declare a new thread to do a preference check
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //  Create a new boolean and preference and set it to true
-                boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
+        // Start our background service. Without this nothing will work!
+        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
 
-                //  If the activity has never started before...
-                if (isFirstStart) {
+        //  Declare a new thread to do a preference check and start intro activity if required.
+        Thread t = new Thread(() -> {
+            // TODO remove
+            PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
 
-                    //  Launch app intro
-                    final Intent i = new Intent(MainActivity.this, IntroActivity.class);
+            //  Create a new boolean and preference and set it to true
+            boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
 
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            startActivity(i);
-                        }
-                    });
+            //  If the activity has never started before...
+            if (isFirstStart) {
 
-                    //  Edit preference to make it false because we don't want this to run again
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, false);
-                }
+                //  Launch app intro
+                final Intent i = new Intent(MainActivity.this, IntroActivity.class);
+
+                runOnUiThread(() -> {
+                    startActivity(i);
+                    finish();
+                });
             }
         });
 
@@ -81,8 +80,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MainTabsAdapter adapter = new MainTabsAdapter(getFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
-
-        startService(new Intent(this, AppMonitorService.class).setAction(AppMonitorService.ACTION_START_SERVICE));
     }
 
     /**

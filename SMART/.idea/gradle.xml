@@ -7,8 +7,9 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$USER_HOME$/Google Drive/UIUC/CS565_HCI/SMART/SMART" />
+            <option value="$USER_HOME$/Google Drive/UIUC/CS565_HCI/SMART/SMART/app" />
+            <option value="$USER_HOME$/Google Drive/UIUC/CS565_HCI/SMART/SMART/cameralibrary" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

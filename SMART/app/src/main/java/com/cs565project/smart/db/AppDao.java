@@ -10,6 +10,7 @@ import android.arch.persistence.room.Update;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.db.entities.MoodLog;
+import com.cs565project.smart.db.entities.RecommendationActivity;
 
 import java.util.Date;
 import java.util.List;
@@ -55,6 +56,12 @@ public interface AppDao {
     @Query("SELECT * FROM MoodLog")
     List<MoodLog> getAllMoodLog();
 
+    @Query("SELECT * FROM RecommendationActivity")
+    List<RecommendationActivity> getRecommendationActivities();
+
+    @Query("SELECT * FROM RecommendationActivity WHERE activityType = (:activityType)")
+    List<RecommendationActivity> getRecommendationActivities(String activityType);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAppUsage(DailyAppUsage... appUsages);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -65,11 +72,15 @@ public interface AppDao {
     void insertAppDetails(List<AppDetails> apps);
     @Insert
     void insertMood(MoodLog... mood);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertRecommendationActivity(RecommendationActivity activity);
 
     @Update
     void updateAppDetails(AppDetails... apps);
     @Update
     void updateAppUsage(DailyAppUsage... appUsages);
+    @Update
+    void updateRecommendationActivity(RecommendationActivity activity);
 
     @Delete
     void deleteAppUsage(DailyAppUsage... appUsages);

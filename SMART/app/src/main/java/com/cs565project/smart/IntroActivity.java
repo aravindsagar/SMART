@@ -1,5 +1,6 @@
 package com.cs565project.smart;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,8 +9,11 @@ import android.support.v4.app.Fragment;
 import com.cs565project.smart.fragments.AccountFragment;
 import com.cs565project.smart.fragments.PermissionsFragment;
 import com.cs565project.smart.fragments.RecommendationSettingsFragment;
+import com.cs565project.smart.util.PreferencesHelper;
 import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.paolorotolo.appintro.AppIntro;
+
+import static com.cs565project.smart.MainActivity.KEY_FIRST_START;
 
 public class IntroActivity extends AppIntro {
 
@@ -51,7 +55,9 @@ public class IntroActivity extends AppIntro {
     @Override
     public void onDonePressed(Fragment currentFragment) {
         super.onDonePressed(currentFragment);
-        // Do something when users tap on Done button.
+        //  Edit preference to make it false because we don't want this to run again
+        PreferencesHelper.setPreference(this, KEY_FIRST_START, false);
+        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 

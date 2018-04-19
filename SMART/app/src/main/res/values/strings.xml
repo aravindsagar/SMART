@@ -67,5 +67,9 @@
     <string name="resume_service">Resume SMART</string>
     <string name="app_blocking_disabled">App blocking is disabled</string>
     <string name="unknown">Unknown</string>
+    <string name="app_monitoring">App Monitoring</string>
+    <string name="app_overlay">App Overlay</string>
+    <string name="camera">Camera</string>
+    <string name="external_storage">External Storage</string>
 
 </resources>
