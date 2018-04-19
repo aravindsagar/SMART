@@ -35,6 +35,7 @@ import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
+import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.fragments.adapter.ChartLegendAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
@@ -165,7 +166,12 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
             }
 
             // Also load the mood.
-            myMood = myEmotionUtil.getEmoji((int) Math.round(myEmotionUtil.getLatestMoodLog(myDate).happy_value * 4));
+            MoodLog latestMoodLog = myEmotionUtil.getLatestMoodLog(myDate);
+            if (latestMoodLog != null) {
+                myMood = myEmotionUtil.getEmoji((int) Math.round(latestMoodLog.happy_value * 4));
+            } else {
+                myMood = getString(R.string.unknown);
+            }
 
             myHandler.post(postLoadData);
         }

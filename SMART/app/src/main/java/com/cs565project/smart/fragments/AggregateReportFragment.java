@@ -396,6 +396,8 @@ public class AggregateReportFragment extends Fragment implements
         xAxis.setValueFormatter((v, a) ->
                 AXIS_DATE_FORMAT.format(new Date((myStartDate.getTime() + (long) v * DateUtils.DAY_IN_MILLIS))));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setAxisMinimum(-0.5f);
         YAxis yAxisLeft = myChart.getAxisLeft(), yAxisRight = myChart.getAxisRight();
         yAxisLeft.setAxisMinimum(0);
         yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, c));

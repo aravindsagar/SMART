@@ -90,11 +90,9 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
 //                    REQUEST_CAMERA_PERMISSION);
         if (PreferencesHelper.getBoolPreference(getActivity(),
                 GeneralSettingsFragment.PREF_ALLOW_PICTURES.getKey(), true)) {
-            myCameraView.setVisibility(View.VISIBLE);
             myCameraView.start();
             myCameraRadio.setEnabled(true);
         } else {
-            myCameraView.setVisibility(View.GONE);
             myCameraRadio.setEnabled(false);
             myInputTypeGroup.check(R.id.enter_manual_radio);
         }

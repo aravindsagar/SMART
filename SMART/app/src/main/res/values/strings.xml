@@ -66,5 +66,6 @@
     <string name="recommended_val">Recommended: %s</string>
     <string name="resume_service">Resume SMART</string>
     <string name="app_blocking_disabled">App blocking is disabled</string>
+    <string name="unknown">Unknown</string>
 
 </resources>
