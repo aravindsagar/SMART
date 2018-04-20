@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#092356"
+    tools:context=".fragments.OnboardingRestrictionsFragment">
+
+    <TextView
+        android:text="@string/onboarding_restrictions"
+        style="@style/OnboardingTextViewStyle"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"/>
+    <ProgressBar
+        android:id="@+id/loading_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:visibility="gone"/>
+    <GridView
+        android:id="@+id/apps_grid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnWidth="54dp"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="24dp"
+        android:horizontalSpacing="10dp"
+        android:stretchMode="spacingWidthUniform"/>
+
+</LinearLayout>

@@ -21,6 +21,7 @@ import com.cs565project.smart.SettingsActivity;
 import com.cs565project.smart.db.AppDao;
 import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.fragments.adapter.RestrictionsAdapter;
 import com.cs565project.smart.recommender.RestrictionRecommender;
 import com.cs565project.smart.util.AppInfo;
@@ -29,8 +30,10 @@ import com.cs565project.smart.util.PreferencesHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -69,11 +72,18 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
             appInfo = new HashMap<>();
             recommendations = new ArrayList<>();
 
+            Set<String> categoriesToRestrict = new HashSet<>(dao.getCategories(true));
+            List<MoodLog> moodLogs = dao.getAllMoodLog();
+
             for (AppDetails appDetails : dao.getAppDetails()) {
                 appInfo.put(appDetails.getPackageName(), new AppInfo(appDetails.getPackageName(), c));
 
                 int recommendation = RestrictionRecommender.recommendRestriction(
-                        appDetails, dao.getAppUsage(appDetails.getPackageName()), dao.getAllMoodLog());
+                        appDetails,
+                        dao.getAppUsage(appDetails.getPackageName()),
+                        moodLogs,
+                        categoriesToRestrict
+                );
                 if (!c.getPackageName().equals(appDetails.getPackageName()) &&
                         (appDetails.getThresholdTime() >= 0 || recommendation > 0)) {
                     restrictedApps.add(appDetails);

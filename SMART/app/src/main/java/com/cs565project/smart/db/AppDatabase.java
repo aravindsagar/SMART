@@ -10,6 +10,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.Category;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.db.entities.RecommendationActivity;
@@ -21,7 +22,9 @@ import static com.cs565project.smart.recommender.ActivityRecommender.KEY_DB_POPU
 import static com.cs565project.smart.recommender.ActivityRecommender.NEWS_TOPICS;
 import static com.cs565project.smart.recommender.ActivityRecommender.RELAX_ACTIVITIES;
 
-@Database(entities = {DailyAppUsage.class, AppDetails.class, MoodLog.class, RecommendationActivity.class}, version = 2)
+@Database(entities = {DailyAppUsage.class, AppDetails.class, MoodLog.class,
+                      RecommendationActivity.class, Category.class},
+        version = 3)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase{
     private static AppDatabase ourInstance;
@@ -47,6 +50,7 @@ public abstract class AppDatabase extends RoomDatabase{
             ourInstance = Room.databaseBuilder(context, AppDatabase.class, "appDB")
                     .addCallback(myDbCallback)
                     .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_2_3)
                     .build();
         }
         return ourInstance;
@@ -81,6 +85,18 @@ public abstract class AppDatabase extends RoomDatabase{
                             "isSet INTEGER NOT NULL, " +
                             "timeOfDay INTEGER NOT NULL, " +
                             "activityType TEXT)"
+            );
+        }
+    };
+
+    private static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS Category");
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS Category " +
+                            "(name TEXT PRIMARY KEY NOT NULL, " +
+                            "shouldRestrict INTEGER NOT NULL)"
             );
         }
     };

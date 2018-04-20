@@ -8,6 +8,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.Category;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.db.entities.MoodLog;
 import com.cs565project.smart.db.entities.RecommendationActivity;
@@ -62,6 +63,12 @@ public interface AppDao {
     @Query("SELECT * FROM RecommendationActivity WHERE activityType = (:activityType)")
     List<RecommendationActivity> getRecommendationActivities(String activityType);
 
+    @Query("SELECT * FROM Category")
+    List<Category> getCategories();
+
+    @Query("SELECT name FROM Category WHERE shouldRestrict = (:shouldRestrict)")
+    List<String> getCategories(boolean shouldRestrict);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAppUsage(DailyAppUsage... appUsages);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -74,6 +81,8 @@ public interface AppDao {
     void insertMood(MoodLog... mood);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertRecommendationActivity(RecommendationActivity activity);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertCategory(Category category);
 
     @Update
     void updateAppDetails(AppDetails... apps);

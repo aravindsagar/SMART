@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -258,7 +259,7 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                     String.format(getString(R.string.duration_in_category), Html.fromHtml(myCurrentCategory).toString()) :
                     getString(R.string.total);
             SpannableString centerTextMood = new SpannableString(
-                    getString(R.string.mood) + " " + myMood); // TODO replace with emoji matching mood.
+                    getString(R.string.mood) + " " + myMood);
             CharSequence centerText = TextUtils.concat(centerTextDuration, "\n", centerTextCategory, "\n\n", centerTextMood);
 
             if (isInSecondaryView()) {
@@ -419,7 +420,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
                         dao.getAppUsage(legendInfo.getSubTitle()),
-                        dao.getAllMoodLog()
+                        dao.getAllMoodLog(),
+                        new HashSet<>(dao.getCategories(true))
                 );
                 myHandler.post(() -> {
                     SetRestrictionFragment

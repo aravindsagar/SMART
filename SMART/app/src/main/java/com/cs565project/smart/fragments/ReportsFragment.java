@@ -213,7 +213,6 @@ public class ReportsFragment extends Fragment implements View.OnClickListener,
         myCategory = "";
         myApp = "";
 
-        // TODO make this more generic
         if (myCurrentSpinnerItem == 0) {
             getChildFragmentManager().beginTransaction().replace(
                     R.id.reports_child_frame,

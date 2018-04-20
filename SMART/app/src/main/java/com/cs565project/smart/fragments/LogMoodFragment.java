@@ -122,7 +122,6 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
         return myBackgroundHandler;
     }
 
-    // FIXME
     private CameraView.Callback onCallback = new CameraView.Callback() {
 
         @Override

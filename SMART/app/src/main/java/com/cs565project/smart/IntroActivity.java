@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
 import com.cs565project.smart.fragments.AccountFragment;
+import com.cs565project.smart.fragments.OnboardingRestrictionsFragment;
 import com.cs565project.smart.fragments.PermissionsFragment;
 import com.cs565project.smart.fragments.RecommendationSettingsFragment;
 import com.cs565project.smart.util.PreferencesHelper;
@@ -14,6 +15,7 @@ import com.cs565project.smart.util.UsageStatsUtil;
 import com.github.paolorotolo.appintro.AppIntro;
 
 import static com.cs565project.smart.MainActivity.KEY_FIRST_START;
+import static com.cs565project.smart.util.DbUtils.KEY_APPS_UPDATED_IN_DB;
 
 public class IntroActivity extends AppIntro {
 
@@ -27,7 +29,7 @@ public class IntroActivity extends AppIntro {
         // AppIntro will automatically generate the dots indicator and buttons.
         addSlide(new PermissionsFragment());
         addSlide(new AccountFragment());
-//        addSlide(new RestrictionsFragment());
+        addSlide(new OnboardingRestrictionsFragment());
         addSlide(new RecommendationSettingsFragment());
 
 
@@ -55,18 +57,40 @@ public class IntroActivity extends AppIntro {
     @Override
     public void onDonePressed(Fragment currentFragment) {
         super.onDonePressed(currentFragment);
-        //  Edit preference to make it false because we don't want this to run again
-        PreferencesHelper.setPreference(this, KEY_FIRST_START, false);
-        startActivity(new Intent(this, MainActivity.class));
+        if (PreferencesHelper.getBoolPreference(this, KEY_FIRST_START, true)) {
+            //  Edit preference to make it false because we don't want this to run again
+            PreferencesHelper.setPreference(this, KEY_FIRST_START, false);
+            startActivity(new Intent(this, MainActivity.class));
+        }
         finish();
     }
 
     @Override
     public void onSlideChanged(@Nullable Fragment oldFragment, @Nullable Fragment newFragment) {
         super.onSlideChanged(oldFragment, newFragment);
-//        if(UsageStatsUtil.hasUsageAccess(this)) {
-//            Toast.makeText(this, "Usage Access Permission is already set", Toast.LENGTH_SHORT).show();
-//        }
+        if (newFragment instanceof OnboardingRestrictionsFragment) {
+            // Wait till our database is ready. Don't allow proceeding further till then.
+            nextButton.setEnabled(false);
+            new Thread() {
+                @Override
+                public void run() {
+                    while(!PreferencesHelper.getBoolPreference(IntroActivity.this, KEY_APPS_UPDATED_IN_DB, false)) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    runOnUiThread(() -> {
+                        nextButton.setEnabled(true);
+                    });
+                }
+            }.start();
+        }
+
+        if (oldFragment instanceof OnboardingRestrictionsFragment) {
+            ((OnboardingRestrictionsFragment) oldFragment).saveData();
+        }
     }
 
     @Override

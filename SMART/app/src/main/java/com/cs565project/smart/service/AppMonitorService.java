@@ -23,6 +23,7 @@ import com.cs565project.smart.db.AppDatabase;
 import com.cs565project.smart.db.entities.AppDetails;
 import com.cs565project.smart.db.entities.DailyAppUsage;
 import com.cs565project.smart.fragments.GeneralSettingsFragment;
+import com.cs565project.smart.recommender.ActivityRecommender;
 import com.cs565project.smart.recommender.NewsItem;
 import com.cs565project.smart.util.AppInfo;
 import com.cs565project.smart.util.DbUtils;
@@ -122,7 +123,9 @@ public class AppMonitorService extends Service {
         public void run() {
             Log.d("SMART", "Updating news");
             myOverlay.setNewsItems(NewsItem.getRecommendedNews(AppMonitorService.this));
-
+            myOverlay.setActivities(ActivityRecommender.getRecommendedActivities(
+                    AppDatabase.getAppDatabase(AppMonitorService.this).appDao().getRecommendationActivities()
+            ));
             if (isRunning) {
                 myHandler.postDelayed(myNewsJobStarter, NEWS_UPDATE_DELAY);
             }

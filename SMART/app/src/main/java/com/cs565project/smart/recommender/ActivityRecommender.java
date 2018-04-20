@@ -2,10 +2,22 @@ package com.cs565project.smart.recommender;
 
 import com.cs565project.smart.db.entities.RecommendationActivity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class ActivityRecommender {
+    /**
+     * Int denoting period of day. OR values together to denote multiple periods.
+     */
+    public static final int MORNING   = 1;
+    public static final int AFTERNOON = 2;
+    public static final int EVENING   = 4;
+    public static final int NIGHT     = 8;
+
     public static final String ACTIVITY_TYPE_EXERCISE = "exercise";
     public static final String ACTIVITY_TYPE_ACADEMIC = "academic";
     public static final String ACTIVITY_TYPE_RELAX = "relax";
@@ -51,4 +63,31 @@ public class ActivityRecommender {
             new RecommendationActivity("Technology", true, 15, ACTIVITY_TYPE_NEWS)
     );
 
+    public static List<RecommendationActivity> getRecommendedActivities(List<RecommendationActivity> allActivities) {
+        List<RecommendationActivity> activities = new ArrayList<>();
+        int dayPeriod = getPeriodOfDay(new Date());
+        for (RecommendationActivity activity : allActivities) {
+            if (activity.isSet && !ACTIVITY_TYPE_NEWS.equals(activity.activityType) && (dayPeriod & activity.timeOfDay) > 0) {
+                activities.add(activity);
+            }
+        }
+        return activities;
+    }
+
+    private static int getPeriodOfDay(Date date) {
+        Calendar cal = GregorianCalendar.getInstance();
+        cal.setTime(date);
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        if (hour < 5) {
+            return NIGHT;
+        } else if (hour < 12) {
+            return MORNING;
+        } else if (hour < 17) {
+            return AFTERNOON;
+        } else if (hour < 22) {
+            return EVENING;
+        } else {
+            return NIGHT;
+        }
+    }
 }

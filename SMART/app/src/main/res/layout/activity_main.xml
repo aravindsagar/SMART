@@ -68,6 +68,14 @@
 
             <TextView
                 style="@style/NavDrawerItemStyle"
+                android:id="@+id/view_intro"
+                android:drawableStart="@drawable/ic_info"
+                android:text="@string/view_intro" />
+            <View
+                style="@style/SeparatorStyle"/>
+
+            <TextView
+                style="@style/NavDrawerItemStyle"
                 android:id="@+id/logout"
                 android:drawableStart="@drawable/ic_logoff"
                 android:text="@string/logout"/>

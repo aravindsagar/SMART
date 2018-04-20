@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DbUtils {
+    public static final String KEY_APPS_UPDATED_IN_DB = "apps_updated_in_db";
+
     private static void populateAppDetailsInDb(Context context) {
         AppDao dao = AppDatabase.getAppDatabase(context).appDao();
         Set<String> dbApps = new HashSet<>(dao.getAppPackageNames());
@@ -49,6 +51,7 @@ public class DbUtils {
         if (toAdd.size() > 0) {
             Log.d("AppInfoUpdate", String.format("Updated category information of %d apps.", toAdd.size()));
         }
+        PreferencesHelper.setPreference(context, KEY_APPS_UPDATED_IN_DB, true);
     }
 
     public static List<Pair<AppDetails, UsageStats>> updateAndGetRestrictedAppsStatus(Context context) {

@@ -9,12 +9,14 @@ import com.cs565project.smart.util.UsageStatsUtil;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class RestrictionRecommender {
 
     public static int recommendRestriction(AppDetails appDetails,
                                            List<DailyAppUsage> dailyAppUsages,
-                                           List<MoodLog> moodLogs) {
+                                           List<MoodLog> moodLogs,
+                                           Set<String> categoriesToRestrict) {
         long weekAgo = UsageStatsUtil.getStartOfDayMillis(new Date()) - DateUtils.WEEK_IN_MILLIS;
 
         long usage = 0;
@@ -45,11 +47,10 @@ public class RestrictionRecommender {
             }
         }
 
-        // An app without restrictions. TODO see whether user wants to restrict this kind of app.
-        if (true) {
-            if (usageCount > 0 && usage / usageCount > 30 * DateUtils.MINUTE_IN_MILLIS) {
-                return (int) (0.9 * (usage/usageCount));
-            }
+        // An app without restrictions.
+        if (usageCount > 0 && usage / usageCount > 30 * DateUtils.MINUTE_IN_MILLIS &&
+                categoriesToRestrict.contains(appDetails.getCategory())) {
+            return (int) (0.9 * (usage/usageCount));
         }
 
         return -1;

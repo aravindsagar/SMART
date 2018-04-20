@@ -2,7 +2,6 @@ package com.cs565project.smart.fragments;
 
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -75,6 +74,7 @@ public class RecommendationSettingsFragment extends Fragment implements View.OnC
                     Log.d("Rec", "Setting onclick" + myExerciseActivities.size());
                     view.setOnClickListener(RecommendationSettingsFragment.this);
                 }
+                recommendationHeaders.get(0).callOnClick();
             });
         }
     };

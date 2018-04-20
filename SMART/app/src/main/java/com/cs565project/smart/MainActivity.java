@@ -49,8 +49,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //  Declare a new thread to do a preference check and start intro activity if required.
         Thread t = new Thread(() -> {
-            // TODO remove
-            PreferencesHelper.setPreference(MainActivity.this, KEY_FIRST_START, true);
 
             //  Create a new boolean and preference and set it to true
             boolean isFirstStart = PreferencesHelper.getBoolPreference(MainActivity.this, KEY_FIRST_START, true);
@@ -100,10 +98,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // menu since this will allow easier dynamic changes.
         isServiceRunning = PreferencesHelper.getBoolPreference(this, AppMonitorService.KEY_SERVICE_RUNNING, true);
         TextView logout = findViewById(R.id.logout),
-                settings = findViewById(R.id.settings);
+                settings = findViewById(R.id.settings),
+                viewIntro = findViewById(R.id.view_intro);
         myToggleButton = findViewById(R.id.toggle_service);
         logout.setOnClickListener(this);
         settings.setOnClickListener(this);
+        viewIntro.setOnClickListener(this);
         myToggleButton.setOnClickListener(this);
         setToggleDrawable();
     }
@@ -124,9 +124,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         isServiceRunning = PreferencesHelper.getBoolPreference(this, AppMonitorService.KEY_SERVICE_RUNNING, true);
-
-        TabLayout tabLayout = findViewById(R.id.tabs);
-        TabLayout.Tab tab = tabLayout.getTabAt(1);
     }
 
     @Override
@@ -147,6 +144,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 myDrawer.closeDrawer(GravityCompat.START);
                 isServiceRunning = !isServiceRunning;
                 setToggleDrawable();
+                break;
+            case R.id.view_intro:
+                Intent introIntent = new Intent(this, IntroActivity.class);
+                startActivity(introIntent);
+                myDrawer.closeDrawer(GravityCompat.START);
                 break;
         }
     }

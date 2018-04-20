@@ -23,8 +23,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_account_circle_black_24dp.xml" />
-                                      <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_accessibility_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_info_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -34,9 +33,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="650c42" />
-                            <entry key="outputName" value="ic_account" />
-                            <entry key="outputName" value="relax_icon" />
+                            <entry key="color" value="136537" />
+                            <entry key="outputName" value="ic_info" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="$USER_HOME$" />
                           </map>

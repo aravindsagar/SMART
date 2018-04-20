@@ -62,7 +62,7 @@ public class EmotionUtil {
     }
 
     private void manageData(byte[] data) throws JSONException {
-        byte[] myPic = data;       // TODO: need to grab the picture taken
+        byte[] myPic = data;
 
         // Steps to connect to image analysis API's. Currently not connected/merged
         // facial feature characteristics scores are received in JSONArray

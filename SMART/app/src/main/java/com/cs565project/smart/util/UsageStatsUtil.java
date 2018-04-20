@@ -56,10 +56,10 @@ public class UsageStatsUtil {
     private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
         List<UsageStats> appList = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
         /*DateFormat fmt = SimpleDateFormat.getInstance();
-        Log.d("startDate", fmt.format(new Date(startTime)))*/;
+        Log.d("startDate", fmt.format(new Date(startTime)));*/
 
         if (appList.size() > 0) {
-            Collections.sort(appList, (a,b) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
+            Collections.sort(appList, (b, a) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
             /*for(UsageStats s : appList) {
                 Log.d(s.getPackageName(), fmt.format(new Date(s.getFirstTimeStamp())) + ", " + fmt.format(new Date(s.getLastTimeStamp())));
             }*/

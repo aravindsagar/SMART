@@ -105,14 +105,15 @@
             android:layout_marginEnd="@dimen/overlay_margin"
             android:textSize="18sp"
             android:textColor="@android:color/white"/>
-        <LinearLayout
+        <TextView
             android:id="@+id/activity_suggestions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="20dp"
             android:layout_marginStart="@dimen/overlay_margin"
-            android:layout_marginEnd="@dimen/overlay_margin"/>
+            android:layout_marginEnd="@dimen/overlay_margin"
+            android:textColor="@android:color/white"/>
 
         <TextView
             android:layout_width="wrap_content"

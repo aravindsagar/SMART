@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.cs565project.smart.MainActivity;
 import com.cs565project.smart.R;
 import com.cs565project.smart.db.entities.AppDetails;
+import com.cs565project.smart.db.entities.RecommendationActivity;
 import com.cs565project.smart.fragments.GeneralSettingsFragment;
 import com.cs565project.smart.recommender.NewsItem;
 import com.cs565project.smart.util.EmotionUtil;
@@ -42,6 +43,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
     private AppDetails myAppDetails;
     private Drawable myDrawable;
     private List<NewsItem> myNewsItems;
+    private List<RecommendationActivity> myActivities;
     private Drawable myWallpaper;
 
     private Executor myExecutor = Executors.newSingleThreadExecutor();
@@ -59,6 +61,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
             WallpaperManager wallpaperManager = WallpaperManager.getInstance(getContext());
             myWallpaper = wallpaperManager.getDrawable();
             myNewsItems = Collections.emptyList();
+            myActivities = Collections.emptyList();
         }
         myEmotionUtil = new EmotionUtil(context);
     }
@@ -72,11 +75,14 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         myNewsItems = newsItems;
     }
 
+    public void setActivities(List<RecommendationActivity> activities) {
+        myActivities = activities;
+    }
+
     @Override
     void setupLayout(View rootView) {
         rootView.setBackground(myWallpaper);
 
-        // TODO populate activities.
         LayoutInflater inflater = LayoutInflater.from(getContext());
         LinearLayout news = rootView.findViewById(R.id.news_feed);
         news.removeAllViews();
@@ -97,6 +103,18 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
             news.addView(articleLayout);
         }
+
+        StringBuilder activityRecommendation = new StringBuilder();
+        int myActivitiesSize = myActivities.size() - 1;
+        for (int i = 0; i < myActivitiesSize; i++) {
+            RecommendationActivity activity = myActivities.get(i);
+            activityRecommendation.append(activity.activityName).append(", ");
+        }
+        if (myActivitiesSize >= 0) {
+            activityRecommendation.append(myActivities.get(myActivitiesSize).activityName);
+        }
+        TextView recommendationView = rootView.findViewById(R.id.activity_suggestions);
+        recommendationView.setText(activityRecommendation.toString());
 
         if (myAppDetails == null) return;
 

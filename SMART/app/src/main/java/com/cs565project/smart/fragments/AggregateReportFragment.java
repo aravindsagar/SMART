@@ -447,7 +447,8 @@ public class AggregateReportFragment extends Fragment implements
                 int thresholdTime = RestrictionRecommender.recommendRestriction(
                         dao.getAppDetails(legendInfo.getSubTitle()),
                         dao.getAppUsage(legendInfo.getSubTitle()),
-                        dao.getAllMoodLog()
+                        dao.getAllMoodLog(),
+                        new HashSet<>(dao.getCategories(true))
                 );
                 myHandler.post(() -> SetRestrictionFragment
                         .newInstance(legendInfo.getTitle(), legendInfo.getSubTitle(), thresholdTime)
