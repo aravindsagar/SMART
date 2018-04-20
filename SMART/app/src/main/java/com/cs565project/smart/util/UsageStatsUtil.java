@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.cs565project.smart.R;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,15 +58,10 @@ public class UsageStatsUtil {
     }
 
     private List<UsageStats> getMostUsedApps(long startTime, long endTime) {
-        List<UsageStats> appList = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
-        /*DateFormat fmt = SimpleDateFormat.getInstance();
-        Log.d("startDate", fmt.format(new Date(startTime)));*/
+        List<UsageStats> appList = new ArrayList<>(mUsageStatsManager.queryAndAggregateUsageStats(startTime, endTime).values());
 
         if (appList.size() > 0) {
             Collections.sort(appList, (b, a) -> Long.compare(a.getTotalTimeInForeground(), b.getTotalTimeInForeground()));
-            /*for(UsageStats s : appList) {
-                Log.d(s.getPackageName(), fmt.format(new Date(s.getFirstTimeStamp())) + ", " + fmt.format(new Date(s.getLastTimeStamp())));
-            }*/
         }
 
         return appList;
