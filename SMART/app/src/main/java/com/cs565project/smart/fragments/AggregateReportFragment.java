@@ -63,7 +63,7 @@ import java.util.concurrent.Executors;
 import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment which displays aggregate reports.
  */
 public class AggregateReportFragment extends Fragment implements
         ChartLegendAdapter.OnItemClickListener, View.OnKeyListener,
@@ -132,8 +132,6 @@ public class AggregateReportFragment extends Fragment implements
 
                 AppDetails appDetails = dao.getAppDetails(appUsage.getPackageName());
                 String category = appDetails.getCategory();
-
-//                if (AppInfo.NO_CATEGORY.equals(category)) { continue; } // For testing; remove
 
                 Map<String, Long> usageMap = usageData.get(getDayIdx(myStartDate.getTime(), appUsage.getDate().getTime()));
 

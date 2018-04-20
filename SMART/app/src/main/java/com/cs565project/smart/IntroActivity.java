@@ -17,6 +17,9 @@ import com.github.paolorotolo.appintro.AppIntro;
 import static com.cs565project.smart.MainActivity.KEY_FIRST_START;
 import static com.cs565project.smart.util.DbUtils.KEY_APPS_UPDATED_IN_DB;
 
+/**
+ * The onboarding activity.
+ */
 public class IntroActivity extends AppIntro {
 
     @Override

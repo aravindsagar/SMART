@@ -6,6 +6,9 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+/**
+ * Database entity to hold app usages at a day-level granularity.
+ */
 @SuppressWarnings("unused")
 @Entity(primaryKeys = {"packageName", "date"},
         foreignKeys = @ForeignKey(entity = AppDetails.class,

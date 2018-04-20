@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Some utility database methods.
+ */
 public class DbUtils {
     public static final String KEY_APPS_UPDATED_IN_DB = "apps_updated_in_db";
 

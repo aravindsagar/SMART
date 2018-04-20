@@ -4,6 +4,9 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+/**
+ * Database entity to hold details of an app.
+ */
 @SuppressWarnings("unused")
 @Entity
 public class AppDetails {

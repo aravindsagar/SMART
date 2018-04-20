@@ -3,6 +3,9 @@ package com.cs565project.smart.db.entities;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
+/**
+ * Database entity to hold details of activities which can be recommended to the user.
+ */
 @Entity
 public class RecommendationActivity {
     @PrimaryKey(autoGenerate = true)

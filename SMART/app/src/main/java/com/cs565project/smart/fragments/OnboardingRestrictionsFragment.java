@@ -34,7 +34,7 @@ import java.util.Set;
 import static com.cs565project.smart.util.DbUtils.KEY_APPS_UPDATED_IN_DB;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment to get user's restriction preferences during onboarding.
  */
 public class OnboardingRestrictionsFragment extends Fragment {
 

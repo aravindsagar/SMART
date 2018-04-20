@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fetches news items to be displayed on block overlay.
+ */
 public class NewsItem {
 
     private static final String API_KEY = "33e71b361aed407aa0e671d7e61f3020";

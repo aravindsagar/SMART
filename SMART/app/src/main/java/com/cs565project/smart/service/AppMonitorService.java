@@ -36,6 +36,10 @@ import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * The main service of the app. It updates the database with usage data, monitors the current app
+ * (and blocks it if necessary), and updates news items, recommended activities etc.
+ */
 public class AppMonitorService extends Service {
 
     private static final String CHANNEL_ID = "persistent";

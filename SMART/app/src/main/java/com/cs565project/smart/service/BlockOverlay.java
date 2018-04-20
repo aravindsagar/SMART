@@ -36,6 +36,10 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Overlay class to manage the blocking screen shown to users when they open a restricted app after
+ * threshold time.
+ */
 class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnClickListener {
     private static final int FLING_THRESHOLD = 5;
     private static final int[] PAGE_IDS = {R.id.overlay_page_1, R.id.overlay_page_2};

@@ -7,15 +7,14 @@ import android.arch.persistence.room.PrimaryKey;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Database entity to hold user's moods.
+ */
 @Entity
 public class MoodLog {
     @PrimaryKey
     public Date dateTime;
 
-/*  // Prob shouldn't store image
-    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-    private byte[] image;       // for image storing
-*/
     // Basic feature char scores
 
     @ColumnInfo(name = "happiness")

@@ -1,8 +1,6 @@
 package com.cs565project.smart.fragments;
 
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -16,7 +14,7 @@ import com.cs565project.smart.R;
 import com.cs565project.smart.util.PreferencesHelper;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment in onboarding activity, to get account details from the user. Currently a placeholder.
  */
 public class AccountFragment extends Fragment {
 

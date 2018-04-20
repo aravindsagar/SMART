@@ -24,7 +24,7 @@ import com.google.android.cameraview.CameraView;
 import java.util.Arrays;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A fragment to log mood either via camera or manual entry.
  */
 public class LogMoodFragment extends Fragment implements View.OnKeyListener, RadioGroup.OnCheckedChangeListener {
 

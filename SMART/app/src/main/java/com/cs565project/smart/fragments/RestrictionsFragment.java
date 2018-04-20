@@ -39,7 +39,7 @@ import java.util.concurrent.Executors;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * A simple {@link Fragment} subclass to display and modify app restrictions.
  */
 public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
         RestrictionsAdapter.OnItemSelectedListener, SetRestrictionFragment.OnDurationSelectedListener, View.OnKeyListener {

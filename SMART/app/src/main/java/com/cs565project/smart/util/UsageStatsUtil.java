@@ -23,6 +23,9 @@ import java.util.Locale;
 import static android.text.format.DateUtils.HOUR_IN_MILLIS;
 import static android.text.format.DateUtils.WEEK_IN_MILLIS;
 
+/**
+ * Utility class for fetching app usage stats.
+ */
 public class UsageStatsUtil {
 
     private final UsageStatsManager mUsageStatsManager;

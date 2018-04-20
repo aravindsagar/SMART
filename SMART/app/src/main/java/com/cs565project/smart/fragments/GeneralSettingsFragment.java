@@ -22,7 +22,7 @@ import java.util.List;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * General settings in Settings activity.
  */
 public class GeneralSettingsFragment extends Fragment implements CompoundButton.OnCheckedChangeListener, SeekBar.OnSeekBarChangeListener {
 
@@ -71,12 +71,6 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
         if (getActivity() == null) {
             return myRootView;
         }
-
-//        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-//        String users_email = sharedPref.getString("user_email", "Not Registered");
-//
-//        TextView T = myRootView.findViewById(R.id.settingsEmail);
-//        T.setText(users_email);
 
         for (SwitchPreference p: SWITCH_PREFERENCES) {
             p.setViewValueFromSavedPreference(myRootView, getContext());

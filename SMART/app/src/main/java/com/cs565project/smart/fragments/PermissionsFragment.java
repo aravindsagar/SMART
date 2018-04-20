@@ -26,7 +26,7 @@ import static com.cs565project.smart.util.PreferencesHelper.setPreference;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment to request necessary permissions from the user during onboarding.
  */
 public class PermissionsFragment extends Fragment {
     private static final String KEY_CHECK_USAGE_ACCESS_ON_RESUME = "check_usage_access_on_resume";

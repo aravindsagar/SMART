@@ -33,7 +33,7 @@ import static com.cs565project.smart.recommender.ActivityRecommender.KEY_DB_POPU
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment to get activity recommendation settings from the user. Used in onboarding and settings.
  */
 
 

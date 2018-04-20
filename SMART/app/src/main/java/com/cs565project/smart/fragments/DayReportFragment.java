@@ -63,7 +63,7 @@ import java.util.concurrent.Executors;
 import static com.github.mikephil.charting.utils.ColorTemplate.rgb;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment to show per-day reports to users.
  */
 public class DayReportFragment extends Fragment implements ChartLegendAdapter.OnItemClickListener, View.OnKeyListener, SetRestrictionFragment.OnDurationSelectedListener {
 

@@ -16,6 +16,9 @@ import com.cs565project.smart.db.entities.RecommendationActivity;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Data access object which provides queries, inserts, updates and deletes in the app database.
+ */
 @Dao
 public interface AppDao {
     @Query("SELECT * FROM DailyAppUsage WHERE packageName = (:packageName) AND date = (:date) LIMIT 1")

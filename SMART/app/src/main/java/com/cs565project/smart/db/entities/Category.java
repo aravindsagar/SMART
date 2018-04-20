@@ -4,6 +4,9 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+/**
+ * Database entity to hold categories of apps that user wants to restrict.
+ */
 @Entity
 public class Category {
     @PrimaryKey

@@ -20,6 +20,9 @@ import com.cs565project.smart.util.UsageStatsUtil;
 
 import java.util.List;
 
+/**
+ * Adapter to populate chart legend.
+ */
 public class ChartLegendAdapter extends RecyclerView.Adapter<ChartLegendAdapter.ViewHolder> {
 
     private List<LegendInfo> myLegendInfos;

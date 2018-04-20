@@ -17,6 +17,9 @@ import com.cs565project.smart.fragments.RecommendationSettingsFragment;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Settings activity. We have 2 tabs: general settings and activity recommendation settings.
+ */
 public class SettingsActivity extends AppCompatActivity {
 
     @Override

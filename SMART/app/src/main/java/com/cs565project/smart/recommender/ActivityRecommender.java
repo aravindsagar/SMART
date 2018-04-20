@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+/**
+ * Provides activity recommendations to be displayed on block overlay.
+ */
 public class ActivityRecommender {
     /**
      * Int denoting period of day. OR values together to denote multiple periods.

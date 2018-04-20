@@ -7,6 +7,9 @@ import com.cs565project.smart.R;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Some utility graph methods.
+ */
 public class GraphUtil {
 
     public static String buildSubtitle(Context context, List<String> items) {

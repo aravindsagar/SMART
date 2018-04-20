@@ -20,6 +20,9 @@ import java.util.Map;
 
 import static android.view.View.GONE;
 
+/**
+ * Adapter to populate restrictions list.
+ */
 public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapter.ViewHolder> {
 
     private List<AppDetails> restrictedApps, otherApps;

@@ -25,6 +25,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Some utility methods for emotion capture and storage.
+ */
 public class EmotionUtil {
     private Handler myUIHandler = new Handler();
     private Context myContext;

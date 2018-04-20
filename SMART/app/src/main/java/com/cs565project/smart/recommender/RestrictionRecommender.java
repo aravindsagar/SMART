@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Recommends app restrictions based on various factors.
+ */
 public class RestrictionRecommender {
 
     public static int recommendRestriction(AppDetails appDetails,
