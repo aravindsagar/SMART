@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import static com.cs565project.smart.util.DbUtils.KEY_APPS_UPDATED_IN_DB;
 
@@ -45,7 +46,7 @@ public class OnboardingRestrictionsFragment extends Fragment {
 
     private Handler myHandler = new Handler();
 
-    private Thread loadData = new Thread() {
+    private Runnable loadData = new Runnable() {
         @Override
         public void run() {
             Context c = getContext();
@@ -114,7 +115,7 @@ public class OnboardingRestrictionsFragment extends Fragment {
         appGrid = root.findViewById(R.id.apps_grid);
         loading.setVisibility(View.VISIBLE);
         appGrid.setVisibility(View.GONE);
-        loadData.start();
+        Executors.newSingleThreadExecutor().execute(loadData);
         return root;
     }
 

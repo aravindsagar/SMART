@@ -8,12 +8,11 @@
     tools:context=".fragments.PermissionsFragment"
     android:background="@color/Onboarding1">
 
-    <TextView
+    <ImageView
+        android:src="@mipmap/ic_launcher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Logo?"
-        android:layout_marginBottom="20dp"
-        android:textColor="@color/primaryTextColor" />
+        android:layout_marginBottom="20dp" />
 
     <TextView
         style="@style/OnboardingTextViewStyle"
