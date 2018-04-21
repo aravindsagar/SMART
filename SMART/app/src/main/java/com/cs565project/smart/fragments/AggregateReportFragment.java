@@ -396,6 +396,7 @@ public class AggregateReportFragment extends Fragment implements
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
         xAxis.setAxisMinimum(-0.5f);
+        xAxis.setGranularity(1.0f);
         YAxis yAxisLeft = myChart.getAxisLeft(), yAxisRight = myChart.getAxisRight();
         yAxisLeft.setAxisMinimum(0);
         yAxisLeft.setValueFormatter((v, a) -> UsageStatsUtil.formatDuration((long) v, c));

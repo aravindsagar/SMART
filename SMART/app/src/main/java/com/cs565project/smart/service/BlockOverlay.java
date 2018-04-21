@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
  * threshold time.
  */
 class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnClickListener {
-    private static final int FLING_THRESHOLD = 5;
+    private static final int FLING_THRESHOLD = 2;
     private static final int[] PAGE_IDS = {R.id.overlay_page_1, R.id.overlay_page_2};
 
     private AppDetails myAppDetails;
@@ -198,7 +198,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
             float velocity = (event.getY()-scrollStartY)/(event.getEventTime()-scrollStartTime);
             if (!fling(velocity)) {
                 scrollStartY = 0;
-                getPageView().animate().translationY(0).setDuration(100).start();
+                getPageView().animate().translationY(0).setDuration(200).start();
             }
         }
         return true;
@@ -227,7 +227,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
 
         getPageView().setTranslationY(-animateDistance);
         getPageView().setVisibility(View.VISIBLE);
-        getPageView().animate().translationY(0).start();
+        getPageView().animate().translationY(0).setDuration(200).start();
 
         return true;
     }
