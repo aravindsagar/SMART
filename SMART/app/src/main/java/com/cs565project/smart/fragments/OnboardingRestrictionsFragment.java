@@ -1,7 +1,6 @@
 package com.cs565project.smart.fragments;
 
 
-import android.app.usage.UsageStats;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -61,7 +60,7 @@ public class OnboardingRestrictionsFragment extends Fragment {
             }
 
             // Populate our grid with most used apps from last week.
-            List<UsageStats> mostUsedApps = new UsageStatsUtil(c).getMostUsedAppsLastWeek();
+            List<UsageStatsUtil.ForegroundStats> mostUsedApps = new UsageStatsUtil(c).getMostUsedAppsLastWeek();
             int appListSize = Math.min(30, mostUsedApps.size());
             List<String> packagesToFetch = new ArrayList<>(appListSize);
             for (int i = 0; i < appListSize; i++) {

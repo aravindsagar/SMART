@@ -5,7 +5,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.usage.UsageStats;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
@@ -47,10 +46,11 @@ public class AppMonitorService extends Service {
     public static final String ACTION_START_SERVICE = "start_service";
     public static final String ACTION_STOP_SERVICE = "stop_service";
     public static final String ACTION_TOGGLE_SERVICE = "toggle_service";
+    public static final String ACTION_BYPASS_BLOCK = "bypass_block";
     public static final String KEY_SERVICE_RUNNING = "service_running";
 
     private static final int CYCLE_DELAY = 200;
-    private static final int DATA_UPDATE_DELAY = 60000;
+    private static final int DATA_UPDATE_DELAY = 10000;
     private static final int NEWS_UPDATE_DELAY = (int) DateUtils.HOUR_IN_MILLIS;
 
     private UsageStatsUtil myUsageStatsUtil;
@@ -60,6 +60,7 @@ public class AppMonitorService extends Service {
     private String notificationText = "You day summary will appear here";
     private boolean updateNotification = false;
     private String myCurrentApp;
+    private boolean myBlockBypassed = false;
 
     private Executor myExecutor = Executors.newFixedThreadPool(3);
     private Handler myHandler = new Handler();
@@ -69,18 +70,19 @@ public class AppMonitorService extends Service {
             String currentApp = myUsageStatsUtil.getForegroundApp();
 
             // Adding/removing overlay should happen in the main thread.
-            if (shouldBlockApp(currentApp)) {
-                if (currentApp != null && !currentApp.equals(myCurrentApp)) {
+            if (currentApp != null && shouldBlockApp(currentApp)) {
+                if (!myBlockBypassed || !currentApp.equals(myCurrentApp)) {
                     AppDao dao = AppDatabase.getAppDatabase(AppMonitorService.this).appDao();
                     AppDetails details = dao.getAppDetails(currentApp);
 
                     myOverlay.setApp(details, new AppInfo(currentApp, getApplicationContext()).getAppIcon());
-                    myHandler.post(myShowOverlay);
+                    if (!myOverlay.isVisible()) {
+                        myHandler.post(myShowOverlay);
+                    }
                 }
 
             } else if (currentApp != null && !"android".equals(currentApp) && myOverlay.isVisible()) {
                 myHandler.post(myHideOverlay);
-
             }
 
             myCurrentApp = currentApp;
@@ -96,11 +98,11 @@ public class AppMonitorService extends Service {
         @Override
         public void run() {
             Log.d("SMART", "Updating app usage data");
-            List<Pair<AppDetails, UsageStats>> restrictedAppsStatus =
+            List<Pair<AppDetails, UsageStatsUtil.ForegroundStats>> restrictedAppsStatus =
                     DbUtils.updateAndGetRestrictedAppsStatus(AppMonitorService.this);
             long timeInRestrictedApps = 0;
             int exceededApps = 0;
-            for(Pair<AppDetails, UsageStats> appStatus : restrictedAppsStatus) {
+            for(Pair<AppDetails, UsageStatsUtil.ForegroundStats> appStatus : restrictedAppsStatus) {
                 timeInRestrictedApps += appStatus.second.getTotalTimeInForeground();
                 if (appStatus.second.getTotalTimeInForeground() >= appStatus.first.getThresholdTime()) {
                     exceededApps += 1;
@@ -126,7 +128,10 @@ public class AppMonitorService extends Service {
         @Override
         public void run() {
             Log.d("SMART", "Updating news");
-            myOverlay.setNewsItems(NewsItem.getRecommendedNews(AppMonitorService.this));
+            List<NewsItem> recommendedNews = NewsItem.getRecommendedNews(AppMonitorService.this);
+            if (recommendedNews != null && !recommendedNews.isEmpty()) {
+                myOverlay.setNewsItems(recommendedNews);
+            }
             myOverlay.setActivities(ActivityRecommender.getRecommendedActivities(
                     AppDatabase.getAppDatabase(AppMonitorService.this).appDao().getRecommendationActivities()
             ));
@@ -176,6 +181,9 @@ public class AppMonitorService extends Service {
                 stop();
             } else if (ACTION_TOGGLE_SERVICE.equals(action)) {
                 if (isRunning) stop(); else start();
+            } else if (ACTION_BYPASS_BLOCK.equals(action)) {
+                myBlockBypassed = true;
+                myOverlay.remove();
             }
         }
         super.onStartCommand(intent, flags, startId);

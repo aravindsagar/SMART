@@ -250,7 +250,8 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
             startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(startMain);
         } else if (v.getId() == R.id.continue_to_app) {
-            remove();
+            Intent serviceIntent = new Intent(getContext(), AppMonitorService.class).setAction(AppMonitorService.ACTION_BYPASS_BLOCK);
+            getContext().startService(serviceIntent);
         } else if (v.getId() == R.id.more_details) {
             getContext().startActivity(new Intent(getContext(), MainActivity.class));
         }

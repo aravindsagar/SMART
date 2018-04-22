@@ -1,6 +1,5 @@
 package com.cs565project.smart.util;
 
-import android.app.usage.UsageStats;
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
@@ -57,7 +56,7 @@ public class DbUtils {
         PreferencesHelper.setPreference(context, KEY_APPS_UPDATED_IN_DB, true);
     }
 
-    public static List<Pair<AppDetails, UsageStats>> updateAndGetRestrictedAppsStatus(Context context) {
+    public static List<Pair<AppDetails, UsageStatsUtil.ForegroundStats>> updateAndGetRestrictedAppsStatus(Context context) {
         AppDao dao = AppDatabase.getAppDatabase(context).appDao();
 
         // Construct a restricted apps map.
@@ -68,13 +67,13 @@ public class DbUtils {
         }
 
         // Compute the results.
-        List<Pair<AppDetails, UsageStats>> results = new ArrayList<>();
-        List<UsageStats> todayStats = new UsageStatsUtil(context).getMostUsedAppsToday();
+        List<Pair<AppDetails, UsageStatsUtil.ForegroundStats>> results = new ArrayList<>();
+        List<UsageStatsUtil.ForegroundStats> todayStats = new UsageStatsUtil(context).getMostUsedAppsToday();
         populateAppDetailsInDb(context); // Make sure all apps are in our db.
         // Only collect stats for apps in our db.
         Set<String> dbApps = new HashSet<>(dao.getAppPackageNames());
         List<DailyAppUsage> toInsert = new ArrayList<>(todayStats.size());
-        for (UsageStats usageStats : todayStats) {
+        for (UsageStatsUtil.ForegroundStats usageStats : todayStats) {
 //             Log.d("Usage stats received", usageStats.getPackageName() + ", " + usageStats.getTotalTimeInForeground()/1000);
             if (!dbApps.contains(usageStats.getPackageName())) continue;
             toInsert.add(new DailyAppUsage(

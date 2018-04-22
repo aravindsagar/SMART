@@ -220,7 +220,8 @@ public class DayReportFragment extends Fragment implements ChartLegendAdapter.On
                 }
 
                 if (addToLegend) {
-                    myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subTitle, icon, usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
+                    myLegendInfos.add(new ChartLegendAdapter.LegendInfo(title, subTitle, icon,
+                            usage, PIE_COLORS[Math.min(i, MAX_ENTRIES - 1)]));
                 }
                 i++;
             }
