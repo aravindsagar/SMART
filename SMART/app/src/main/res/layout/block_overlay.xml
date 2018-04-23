@@ -61,6 +61,28 @@
             android:background="?android:attr/selectableItemBackground"/>
 
         <TextView
+            android:id="@+id/activity_suggestions_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/suggested_activities"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="@dimen/overlay_margin"
+            android:layout_marginEnd="@dimen/overlay_margin"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"/>
+        <TextView
+            android:id="@+id/activity_suggestions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp"
+            android:layout_marginStart="@dimen/overlay_margin"
+            android:layout_marginEnd="@dimen/overlay_margin"
+            android:padding="12dp"
+            android:textColor="@android:color/black"
+            android:background="@drawable/rounded_rect_bg"/>
+
+        <TextView
             android:id="@+id/news_feed_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -92,28 +114,9 @@
             android:paddingEnd="12dp"
             android:paddingStart="12dp"
             android:textStyle="italic"
-            android:background="@drawable/rounded_rect_bg_bottom"/>
+            android:background="@drawable/rounded_rect_bg_bottom"
+            android:textSize="11sp"/>
 
-
-        <TextView
-            android:id="@+id/activity_suggestions_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/suggested_activities"
-            android:layout_marginBottom="10dp"
-            android:layout_marginStart="@dimen/overlay_margin"
-            android:layout_marginEnd="@dimen/overlay_margin"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"/>
-        <TextView
-            android:id="@+id/activity_suggestions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="20dp"
-            android:layout_marginStart="@dimen/overlay_margin"
-            android:layout_marginEnd="@dimen/overlay_margin"
-            android:textColor="@android:color/white"/>
 
         <TextView
             android:layout_width="wrap_content"

@@ -30,31 +30,31 @@ public class ActivityRecommender {
     public static final String KEY_DB_POPULATED = "db_activities_populated";
 
     public static final List<RecommendationActivity> EXERCISE_ACTIVITIES = Arrays.asList(
-            new RecommendationActivity("Run", false, 7, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Bike", false, 7, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Hike", false, 3, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Yoga", false, 3, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Pilates", false, 3, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Weight Lift", false, 3, ACTIVITY_TYPE_EXERCISE),
-            new RecommendationActivity("Sport", false, 3, ACTIVITY_TYPE_EXERCISE)
+            new RecommendationActivity("\uD83C\uDFC3 Run", false, 7, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("\uD83D\uDEB4 Bike", false, 7, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("⛰️ Hike", false, 3, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("\uD83E\uDDD8 Yoga", false, 3, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("\uD83D\uDCAA️ Pilates", false, 3, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("\uD83C\uDFCB️ Weight Lift", false, 3, ACTIVITY_TYPE_EXERCISE),
+            new RecommendationActivity("\uD83C\uDFC8 Sport", false, 3, ACTIVITY_TYPE_EXERCISE)
     );
 
     public static final List<RecommendationActivity> ACADEMIC_ACTIVITIES = Arrays.asList(
-            new RecommendationActivity("Study for courses", false, 7, ACTIVITY_TYPE_ACADEMIC),
-            new RecommendationActivity("Read a book", false, 7, ACTIVITY_TYPE_ACADEMIC),
-            new RecommendationActivity("Write in your journal", false, 12, ACTIVITY_TYPE_ACADEMIC),
-            new RecommendationActivity("Create a program", false, 3, ACTIVITY_TYPE_ACADEMIC),
-            new RecommendationActivity("Solve Puzzles", false, 3, ACTIVITY_TYPE_ACADEMIC)
+            new RecommendationActivity("\uD83D\uDCDA Study for courses", false, 7, ACTIVITY_TYPE_ACADEMIC),
+            new RecommendationActivity("\uD83D\uDCD6 Read a book", false, 7, ACTIVITY_TYPE_ACADEMIC),
+            new RecommendationActivity("✍️ Write in your journal", false, 12, ACTIVITY_TYPE_ACADEMIC),
+            new RecommendationActivity("\uD83D\uDDA5️ Create a program", false, 3, ACTIVITY_TYPE_ACADEMIC),
+            new RecommendationActivity("\uD83C\uDC04 Solve Puzzles", false, 3, ACTIVITY_TYPE_ACADEMIC)
     );
 
     public static final List<RecommendationActivity> RELAX_ACTIVITIES = Arrays.asList(
-            new RecommendationActivity("Drink Tea", false, 7, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Talk with or hangout with Friend(s)", false, 15, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Meditate", false, 15, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Take a Nap", false, 3, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Massage", false, 3, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Go Outside", false, 3, ACTIVITY_TYPE_RELAX),
-            new RecommendationActivity("Stretch", false, 15, ACTIVITY_TYPE_RELAX)
+            new RecommendationActivity("☕ Drink Tea", false, 7, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83D\uDC4B Talk with or hangout with Friend(s)", false, 15, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83E\uDDD8 Meditate", false, 15, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83D\uDECC Take a Nap", false, 3, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83D\uDC86 Massage", false, 3, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83C\uDF05 Go Outside", false, 3, ACTIVITY_TYPE_RELAX),
+            new RecommendationActivity("\uD83E\uDD3E Stretch", false, 15, ACTIVITY_TYPE_RELAX)
     );
 
     public static final List<RecommendationActivity> NEWS_TOPICS = Arrays.asList(

@@ -148,8 +148,8 @@ public class RestrictionsFragment extends Fragment implements SwipeRefreshLayout
     }
 
     @Override
-    public void onItemSelected(AppDetails appDetails) {
-        SetRestrictionFragment.newInstance(appDetails.getAppName(), appDetails.getPackageName(), appDetails.getThresholdTime())
+    public void onItemSelected(AppDetails appDetails, long recommendation) {
+        SetRestrictionFragment.newInstance(appDetails.getAppName(), appDetails.getPackageName(), recommendation)
                 .setListener(this)
                 .show(getChildFragmentManager(), "DURATION_PICKER");
     }

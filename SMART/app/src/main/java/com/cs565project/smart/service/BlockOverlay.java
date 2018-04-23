@@ -112,7 +112,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         int myActivitiesSize = myActivities.size() - 1;
         for (int i = 0; i < myActivitiesSize; i++) {
             RecommendationActivity activity = myActivities.get(i);
-            activityRecommendation.append(activity.activityName).append(", ");
+            activityRecommendation.append(activity.activityName).append("\n");
         }
         if (myActivitiesSize >= 0) {
             activityRecommendation.append(myActivities.get(myActivitiesSize).activityName);
@@ -258,10 +258,16 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
     }
 
     @Override
+    public void execute() {
+        super.execute();
+
+    }
+
+    @Override
     public void remove() {
         try {
             CameraView cameraView = getViewRoot().findViewById(R.id.overlay_camera_view);
-            if (cameraView != null) {
+            if (cameraView != null && cameraView.isCameraOpened()) {
                 cameraView.stop();
             }
         } catch (Exception e) {
@@ -274,7 +280,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         @Override
         public void onCameraOpened(CameraView cameraView) {
             super.onCameraOpened(cameraView);
-            myHandler.postDelayed(cameraView::takePicture, 1000);
+            myHandler.postDelayed(cameraView::takePicture, 1000L);
         }
 
         @Override
@@ -286,6 +292,7 @@ class BlockOverlay extends OverlayBase implements View.OnTouchListener, View.OnC
         public void onPictureTaken(CameraView cameraView, byte[] data) throws JSONException {
             super.onPictureTaken(cameraView, data);
             myExecutor.execute(() -> myEmotionUtil.processPicture(data));
+            cameraView.stop();
         }
     };
 }

@@ -98,4 +98,6 @@ public interface AppDao {
     void deleteAppUsage(DailyAppUsage... appUsages);
     @Delete
     void deleteAppDetails(AppDetails... apps);
+    @Delete
+    void deleteRecommendationActivities(List<RecommendationActivity> activities);
 }

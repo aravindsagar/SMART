@@ -116,7 +116,7 @@ public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapte
             holder.recommendationText.setVisibility(GONE);
         }
 
-        holder.itemView.setOnClickListener((v -> listener.onItemSelected(appDetails)));
+        holder.itemView.setOnClickListener((v -> listener.onItemSelected(appDetails, recommendation)));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -135,6 +135,6 @@ public class RestrictionsAdapter extends RecyclerView.Adapter<RestrictionsAdapte
     }
 
     public interface OnItemSelectedListener {
-        void onItemSelected(AppDetails appDetails);
+        void onItemSelected(AppDetails appDetails, long recommendation);
     }
 }

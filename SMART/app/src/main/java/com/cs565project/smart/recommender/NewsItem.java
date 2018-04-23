@@ -21,6 +21,7 @@ import java.util.List;
  * Fetches news items to be displayed on block overlay.
  */
 public class NewsItem {
+    private static final int MAX_NEWS_ITEMS = 3;
 
     private static final String API_KEY = "33e71b361aed407aa0e671d7e61f3020";
     private static final String NEWS_URL = "https://newsapi.org/v2/top-headlines?country=us&" +
@@ -64,7 +65,7 @@ public class NewsItem {
         try {
             JSONObject newsData = HttpUtil.getJson(NEWS_URL);
             JSONArray articleArray = newsData.getJSONArray("articles");
-            for(int i = 0; i < Math.min(4, articleArray.length()); i++) {
+            for(int i = 0; i < Math.min(MAX_NEWS_ITEMS, articleArray.length()); i++) {
                 JSONObject article = articleArray.getJSONObject(i);
                 HttpUtil.ConnectionInputStream stream = null;
                 Drawable image = null;

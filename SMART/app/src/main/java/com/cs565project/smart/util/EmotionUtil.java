@@ -87,15 +87,15 @@ public class EmotionUtil {
     public void insertMoodLog(List<Double> moodData) {
         AppDao dao = AppDatabase.getAppDatabase(myContext.getApplicationContext()).appDao();
         Date now = new Date();
-        long startOfDay = UsageStatsUtil.getStartOfDayMillis(now);
-        MoodLog existingLog = getLatestMoodLog(now);
+        List<MoodLog> existingLogs = getAllMoodLogs(now);
 
-        if (existingLog != null) {
-            long logTimeDelta = now.getTime() - existingLog.dateTime.getTime();
-            long existingWeight = existingLog.dateTime.getTime() - startOfDay;
+        if (!existingLogs.isEmpty()) {
+            MoodLog latestLog =  Collections.max(existingLogs,
+                    (a, b) -> Long.compare(a.dateTime.getTime(), b.dateTime.getTime()));
+            long existingWeight = getAllMoodLogs(now).size();
             for (int i = 0; i < moodData.size(); i++) {
-                moodData.set(i, (existingLog.getValByIndex(i) * existingWeight + moodData.get(i) * logTimeDelta) /
-                        (existingWeight + logTimeDelta));
+                moodData.set(i, (latestLog.getValByIndex(i) * existingWeight + moodData.get(i)) /
+                        (existingWeight + 1));
             }
         }
         MoodLog ml = new MoodLog(now, moodData);
@@ -105,11 +105,15 @@ public class EmotionUtil {
     }
 
     public MoodLog getLatestMoodLog(Date date) {
-        AppDao dao = AppDatabase.getAppDatabase(myContext.getApplicationContext()).appDao();
-        long startOfDay = UsageStatsUtil.getStartOfDayMillis(date);
-        List<MoodLog> existingLogs = dao.getMoodLog(new Date(startOfDay), new Date(startOfDay + DateUtils.DAY_IN_MILLIS - 1));
+        List<MoodLog> existingLogs = getAllMoodLogs(date);
         if (existingLogs.isEmpty()) { return null; }
         return Collections.max(existingLogs, (a, b) -> Long.compare(a.dateTime.getTime(), b.dateTime.getTime()));
+    }
+
+    private List<MoodLog> getAllMoodLogs(Date date) {
+        AppDao dao = AppDatabase.getAppDatabase(myContext.getApplicationContext()).appDao();
+        long startOfDay = UsageStatsUtil.getStartOfDayMillis(date);
+        return dao.getMoodLog(new Date(startOfDay), new Date(startOfDay + DateUtils.DAY_IN_MILLIS - 1));
     }
 
     public String getEmoji(int value) {
