@@ -1,6 +1,7 @@
 package com.cs565project.smart.recommender;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -71,7 +72,10 @@ public class NewsItem {
                 Drawable image = null;
                 try {
                     stream = HttpUtil.fetchUrl(article.getString("urlToImage"));
-                    image = new BitmapDrawable(context.getResources(), BitmapFactory.decodeStream(stream.getStream()));
+                    Bitmap bmp = BitmapFactory.decodeStream(stream.getStream());
+                    Bitmap scaledBmp = Bitmap.createScaledBitmap(bmp, 120, 120, false);
+                    bmp.recycle();
+                    image = new BitmapDrawable(context.getResources(), scaledBmp);
                 } catch (IOException e) {
                     e.printStackTrace();
                     image = context.getDrawable(R.drawable.ic_public_black_24dp);

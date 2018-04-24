@@ -21,17 +21,17 @@ public class AppInfo {
 
     private String packageName, appName;
     private Drawable appIcon;
+    private PackageManager packageManager;
 
 
-    public AppInfo(String packageName, String appName, Drawable appIcon){
+    public AppInfo(String packageName, String appName, PackageManager packageManager){
         this.packageName = packageName;
         this.appName = appName;
-        this.appIcon = appIcon;
+        this.packageManager = packageManager;
     }
 
     public AppInfo(String packageName, Context context){
-        this(packageName, null, null);
-        setAppNameAndIconFromPackageName(packageName, context);
+        this(packageName, getAppNameFromPackageName(packageName, context), context.getPackageManager());
     }
 
     public String getPackageName() {
@@ -44,20 +44,6 @@ public class AppInfo {
 
     public String getAppName() {
         return appName;
-    }
-
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
-
-    private void setAppNameAndIconFromPackageName(String packageName, Context context){
-        try {
-            ApplicationInfo info = context.getPackageManager().getApplicationInfo(packageName, 0);
-            appIcon = context.getPackageManager().getApplicationIcon(info);
-            appName = context.getPackageManager().getApplicationLabel(info).toString();
-        } catch (PackageManager.NameNotFoundException e){
-            //Do nothing
-        }
     }
 
     @Override
@@ -75,11 +61,23 @@ public class AppInfo {
     }
 
     public Drawable getAppIcon() {
+        if (appIcon == null) {
+            try {
+                appIcon = packageManager.getApplicationIcon(packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
         return appIcon;
     }
 
-    public void setAppIcon(Drawable appIcon) {
-        this.appIcon = appIcon;
+    private static String getAppNameFromPackageName(String packageName, Context context){
+        try {
+            ApplicationInfo info = context.getPackageManager().getApplicationInfo(packageName, 0);
+            return context.getPackageManager().getApplicationLabel(info).toString();
+        } catch (PackageManager.NameNotFoundException e){
+            return null;
+        }
     }
 
     public static List<AppInfo> getAllApps(PackageManager packageManager){
@@ -90,8 +88,7 @@ public class AppInfo {
         List<AppInfo> allApps = new ArrayList<>();
         for(ResolveInfo info: pkgAppsList){
             ApplicationInfo appInfo = info.activityInfo.applicationInfo;
-            allApps.add(new AppInfo(appInfo.packageName, appInfo.loadLabel(packageManager).toString(),
-                    appInfo.loadIcon(packageManager)));
+            allApps.add(new AppInfo(appInfo.packageName, appInfo.loadLabel(packageManager).toString(), packageManager));
         }
         Collections.sort(allApps, new AppComparator());
         return allApps;
