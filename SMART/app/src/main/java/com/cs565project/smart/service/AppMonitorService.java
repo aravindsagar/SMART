@@ -50,7 +50,7 @@ public class AppMonitorService extends Service {
     public static final String KEY_SERVICE_RUNNING = "service_running";
 
     private static final int CYCLE_DELAY = 200;
-    private static final int DATA_UPDATE_DELAY = 10000;
+    private static final int DATA_UPDATE_DELAY = 20000;
     private static final int NEWS_UPDATE_DELAY = (int) DateUtils.HOUR_IN_MILLIS;
 
     private UsageStatsUtil myUsageStatsUtil;
