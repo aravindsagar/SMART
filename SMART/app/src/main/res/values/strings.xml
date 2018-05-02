@@ -24,8 +24,8 @@
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="permissions_fragment">Welcome to SMART, an application to help you monitor and increase your productivity! To use SMART, you need to enable app usage statistics for the SMART app to track your time on specific applications.</string>
-    <string name="user_password"></string>
-    <string name="user_confirm_password"></string>
+    <string name="userPassword"></string>
+    <string name="userConfirmPassword"></string>
 
     <string name="time_in_restricted_apps">%s in restricted apps</string>
     <string name="limit_exceeded">Usage limit exceeded in %d apps</string>

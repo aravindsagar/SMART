@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "50956fa12c58fe45b2a948fdf60e1aff",
+    "identityHash": "d831d2dd2ea732740e3b4dabaff0081c",
     "entities": [
       {
         "tableName": "DailyAppUsage",
@@ -57,7 +57,7 @@
       },
       {
         "tableName": "AppDetails",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT, `category` TEXT, `thresholdTime` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `category` TEXT NOT NULL, `thresholdTime` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -69,13 +69,13 @@
             "fieldPath": "appName",
             "columnName": "appName",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "category",
             "columnName": "category",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "thresholdTime",
@@ -95,42 +95,42 @@
       },
       {
         "tableName": "MoodLog",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateTime` INTEGER, `happiness` REAL NOT NULL, `sadness` REAL NOT NULL, `neutral` REAL NOT NULL, `anger` REAL NOT NULL, PRIMARY KEY(`dateTime`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` INTEGER NOT NULL, `happyValue` REAL NOT NULL, `sadValue` REAL NOT NULL, `neutralValue` REAL NOT NULL, `angerValue` REAL NOT NULL, PRIMARY KEY(`date`))",
         "fields": [
           {
-            "fieldPath": "dateTime",
-            "columnName": "dateTime",
+            "fieldPath": "date",
+            "columnName": "date",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
-            "fieldPath": "happy_value",
-            "columnName": "happiness",
+            "fieldPath": "happyValue",
+            "columnName": "happyValue",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "sad_value",
-            "columnName": "sadness",
+            "fieldPath": "sadValue",
+            "columnName": "sadValue",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "neutral_value",
-            "columnName": "neutral",
+            "fieldPath": "neutralValue",
+            "columnName": "neutralValue",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "anger_value",
-            "columnName": "anger",
+            "fieldPath": "angerValue",
+            "columnName": "angerValue",
             "affinity": "REAL",
             "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "dateTime"
+            "date"
           ],
           "autoGenerate": false
         },
@@ -139,7 +139,7 @@
       },
       {
         "tableName": "RecommendationActivity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `activityName` TEXT, `isSet` INTEGER NOT NULL, `timeOfDay` INTEGER NOT NULL, `activityType` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `activityName` TEXT NOT NULL, `isSet` INTEGER NOT NULL, `timeOfDay` INTEGER NOT NULL, `activityType` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -151,7 +151,7 @@
             "fieldPath": "activityName",
             "columnName": "activityName",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "isSet",
@@ -169,7 +169,7 @@
             "fieldPath": "activityType",
             "columnName": "activityType",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -180,11 +180,37 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "Category",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `shouldRestrict` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shouldRestrict",
+            "columnName": "shouldRestrict",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "name"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"50956fa12c58fe45b2a948fdf60e1aff\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"d831d2dd2ea732740e3b4dabaff0081c\")"
     ]
   }
 }

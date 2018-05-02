@@ -15,19 +15,19 @@
         />
 
     <EditText
-        android:id="@+id/user_email"
+        android:id="@+id/userEmail"
         style="@style/AccountEditInputStyle"
         android:hint="Email"
         android:inputType="textEmailAddress" />
 
     <EditText
-        android:id="@+id/user_password"
+        android:id="@+id/userPassword"
         style="@style/AccountEditInputStyle"
         android:hint="Password"
         android:inputType="textPassword" />
 
     <EditText
-        android:id="@+id/user_confirm_password"
+        android:id="@+id/userConfirmPassword"
         android:hint="Confirm Password"
         android:inputType="textPassword"
         style="@style/AccountEditInputStyle"
