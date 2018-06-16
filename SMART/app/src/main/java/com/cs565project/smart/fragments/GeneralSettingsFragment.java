@@ -34,7 +34,7 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
     public static final SwitchPreference PREF_ALLOW_BLOCK_BYPASS =
             new SwitchPreference("allow_block_bypass", true, R.id.hard_block_switch);
     public static final SwitchPreference PREF_ALLOW_PICTURES =
-            new SwitchPreference("allow_pictures", true, R.id.allow_picture_switch);
+            new SwitchPreference("allow_pictures", false, R.id.allow_picture_switch);
     public static final SeekbarPreference PREF_PICTURE_FREQ = new SeekbarPreference(
             "picture_freq", 1, R.id.picture_frequency_seekbar, R.id.picture_freq_text_view) {
         @Override
@@ -54,11 +54,12 @@ public class GeneralSettingsFragment extends Fragment implements CompoundButton.
     };
 
     private static final List<SwitchPreference> SWITCH_PREFERENCES = Arrays.asList(
-            PREF_ALLOW_BLOCK_BYPASS, PREF_ALLOW_PICTURES, PREF_ALLOW_APP_BLOCK
+            PREF_ALLOW_BLOCK_BYPASS, /*PREF_ALLOW_PICTURES,*/ PREF_ALLOW_APP_BLOCK
     );
-    private static final List<SeekbarPreference> SEEKBAR_PREFERENCES = Collections.singletonList(
+    private static final List<SeekbarPreference> SEEKBAR_PREFERENCES = Collections.emptyList();
+    /*Collections.singletonList(
             PREF_PICTURE_FREQ
-    );
+    );*/
 
     private View myRootView;
 

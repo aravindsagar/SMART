@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
-import com.cs565project.smart.fragments.AccountFragment;
 import com.cs565project.smart.fragments.OnboardingRestrictionsFragment;
 import com.cs565project.smart.fragments.PermissionsFragment;
 import com.cs565project.smart.fragments.RecommendationSettingsFragment;
@@ -31,7 +30,7 @@ public class IntroActivity extends AppIntro {
         // Add your slide fragments here.
         // AppIntro will automatically generate the dots indicator and buttons.
         addSlide(new PermissionsFragment());
-        addSlide(new AccountFragment());
+//        addSlide(new AccountFragment());
         addSlide(new OnboardingRestrictionsFragment());
         addSlide(new RecommendationSettingsFragment());
 

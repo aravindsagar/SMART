@@ -67,6 +67,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
 
         myEmotionUtil = new EmotionUtil(getActivity());
 
+
         myCameraView = root.findViewById(R.id.camera_view);
         myCameraView.setFacing(CameraView.FACING_FRONT);
         myCameraView.addCallback(onCallback);
@@ -89,7 +90,7 @@ public class LogMoodFragment extends Fragment implements View.OnKeyListener, Rad
 //        FragmentCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
 //                    REQUEST_CAMERA_PERMISSION);
         if (PreferencesHelper.getBoolPreference(getActivity(),
-                GeneralSettingsFragment.PREF_ALLOW_PICTURES.getKey(), true)) {
+                GeneralSettingsFragment.PREF_ALLOW_PICTURES.getKey(), false)) {
             myCameraView.start();
             myCameraRadio.setEnabled(true);
         } else {

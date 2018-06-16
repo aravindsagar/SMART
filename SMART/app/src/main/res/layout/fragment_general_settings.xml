@@ -26,19 +26,23 @@
             style="@style/SettingsSwitchStyle" />
 
         <TextView android:text="@string/emotion_recognition"
-            style="@style/SettingsHeaderStyle"/>
+            style="@style/SettingsHeaderStyle"
+            android:visibility="gone"/>
 
         <Switch
             android:id="@+id/allow_picture_switch"
             android:text="@string/allow_take_picture"
-            style="@style/SettingsSwitchStyle"/>
-        <View style="@style/SeparatorStyle" />
+            style="@style/SettingsSwitchStyle"
+            android:visibility="gone"/>
+        <View style="@style/SeparatorStyle"
+            android:visibility="gone"/>
 
         <TextView
             android:text="@string/picture_frequency"
             android:id="@+id/picture_freq_text_view"
             style="@style/SettingsSwitchStyle"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp"
+            android:visibility="gone"/>
         <SeekBar
             android:id="@+id/picture_frequency_seekbar"
             android:layout_width="match_parent"
@@ -46,7 +50,8 @@
             android:layout_marginEnd="@dimen/settings_normal_margin"
             android:layout_marginStart="@dimen/settings_normal_margin"
             style="@style/Widget.AppCompat.SeekBar.Discrete"
-            android:max="5" />
+            android:max="5"
+            android:visibility="gone"/>
 
     </LinearLayout>
 </ScrollView>
